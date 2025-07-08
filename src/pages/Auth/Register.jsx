@@ -27,12 +27,7 @@ const Register = () => {
 
   const submitForm = async (data) => {
     console.log("Form Data: ", data);
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, value);
-    });
-
-    signup(formData);
+    signup(data);
   };
 
   return (
@@ -93,7 +88,7 @@ const Register = () => {
           <div>
             <label className="block mb-2 text-sm font-medium">I am a...</label>
             <div className="flex gap-4">
-              <label className="flex-1 border rounded p-2 flex flex-col items-center justify-center gap-2 cursor-pointer">
+              <label id='role' className="flex-1 border rounded p-2 flex flex-col items-center justify-center gap-2 cursor-pointer">
                 <input
                   type="radio"
                   value="candidate"
@@ -105,7 +100,7 @@ const Register = () => {
                 <span>Job Seeker</span>
               </label>
 
-              <label className="flex-1 border rounded p-2 flex flex-col items-center justify-center gap-2 cursor-pointer">
+              <label id='role' className="flex-1 border rounded p-2 flex flex-col items-center justify-center gap-2 cursor-pointer">
                 <input
                   type="radio"
                   value="employer"

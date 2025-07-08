@@ -8,6 +8,7 @@ const AuthProvider = ({ children }) => {
     const accessToken = localStorage.getItem("accessToken")
     const baseUrl = import.meta.env.VITE_BASE_URL
     const [isSigning, setIsSigning] = useState(false)
+    const [currentUser, setCurrentUser] = useState("");
     const navigate = useNavigate();
     const [verifyMessage, setVerifyMessage] = useState("")
 
@@ -31,6 +32,9 @@ const AuthProvider = ({ children }) => {
         try {
             const response = await fetch(`${baseUrl}auth/signup`, {
                 method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
                 body: JSON.stringify(formData)
             })
             const data = await response.json()
@@ -41,7 +45,7 @@ const AuthProvider = ({ children }) => {
                 return
             }
             // toast.success("You have successfully signed up, a verification mail has been sent to you.")
-            navigate("/signin")
+            navigate("/login")
 
         } catch (error) {
             console.log(error)
@@ -106,6 +110,7 @@ const AuthProvider = ({ children }) => {
                 return
             }
             console.log(data);
+            setCurrentUser(data.user);
             localStorage.setItem("accessToken", data.accessToken)
             // toast.success("You have successfully logged in")
             navigate("/dashboard")
@@ -141,7 +146,8 @@ const AuthProvider = ({ children }) => {
         signup,
         sendPassEmail,
         verifyAndChangePass,
-        fetchCurrentUser
+        fetchCurrentUser,
+        currentUser
     }
     return (
         <authContext.Provider value={value}>

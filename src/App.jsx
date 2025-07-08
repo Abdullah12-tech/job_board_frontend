@@ -16,6 +16,7 @@ import JobProtect from './components/ProtectJobs';
 import AuthProvider from './context/AuthContext';
 import JobProvider from './context/jobContext';
 import ApplicationProvider from './context/applicationContext';
+import ApplyJob from './pages/applyJob';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
                   <Route path="/login" element={<Login />} />
                   <Route element={<JobProtect />}>
                     <Route path="/post-job" element={<PostJob />} />
+                    <Route path="/apply/:id" element={<ApplyJob/>} />
                   </Route>
                   <Route path="/register" element={<Register />} />
                   <Route path="*" element={<NotFound />} />

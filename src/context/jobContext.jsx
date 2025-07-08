@@ -5,6 +5,7 @@ export const jobContext = createContext();
 const JobProvider = ({children}) =>{
     const baseUrl = import.meta.env.VITE_BASE_URL;
     const [jobs, setJobs] = useState("");
+    const [isPostingJob, setIsPostingJob] = useState(false);
     const [singleJob,setSingleJob] = useState("");
     const fetchAllJobs = async ()=>{
         try {
@@ -17,6 +18,7 @@ const JobProvider = ({children}) =>{
     }
 
     const postJob = async (formData)=>{
+        setIsPostingJob(true);
         try {
             const res = await fetch(`${baseUrl}/jobs`, {
                 method: "POST",
@@ -27,8 +29,11 @@ const JobProvider = ({children}) =>{
                 return
             }
             alert("You have successfully add a job");
+            setIsPostingJob(false);
         } catch (err) {
             console.log(err);
+        }finally{
+            setIsPostingJob(false);
         }
     }
     const deleteJob = async (id)=>{
@@ -56,7 +61,8 @@ const JobProvider = ({children}) =>{
         singleJob,
         fetchSingleJob,
         postJob,
-        deleteJob
+        deleteJob,
+        isPostingJob
     }
     return (
         <jobContext.Provider value={value}>

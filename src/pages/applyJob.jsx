@@ -1,7 +1,7 @@
 const ApplyJob = ()=>{
     return (
-        <div className="w-full">
-
+        <div className="w-screen">
+                <div className="max-w-5xl"></div>
         </div>
     )
 }

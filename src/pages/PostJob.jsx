@@ -19,7 +19,7 @@ const postJobSchema = yup.object({
   expiredAt: yup.date()
 })
 const PostJob = () => {
-  const {postJob} = useContext(jobContext);
+  const {postJob, isPostingJob} = useContext(jobContext);
   const [job, setJob] = useState({
     title: '',
     company: '',
@@ -63,11 +63,7 @@ const PostJob = () => {
   };
 
   const submitForm = (data) => {
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, value);
-    })
-    postJob(formData);
+    postJob(data);
   };
 
   return (
@@ -267,9 +263,9 @@ const PostJob = () => {
               <div className="pt-4 border-t border-gray-200">
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-accent"
+                  className={`${isPostingJob ? "" : ""}px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-accent`}
                 >
-                  Post Job
+                  {isPostingJob ? "" : "Post Job"} 
                 </button>
               </div>
             </div>
