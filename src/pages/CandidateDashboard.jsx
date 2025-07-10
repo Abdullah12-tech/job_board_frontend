@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FiBriefcase, FiBookmark, FiUser, FiSettings, FiBell, FiMessageSquare } from 'react-icons/fi';
 
-const Dashboard = () => {
+const CandidateDashboard = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [user, setUser] = useState({
     name: 'John Doe',
@@ -54,7 +54,7 @@ const Dashboard = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
-          <div className="sticky top-0 lg:w-64">
+          <div className="static lg:sticky top-0 lg:w-64">
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-8">
               <div className="flex flex-col items-center mb-6">
                 <div className="w-24 h-24 rounded-full bg-primary text-white flex items-center justify-center text-3xl font-bold mb-3">
@@ -363,4 +363,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default CandidateDashboard;

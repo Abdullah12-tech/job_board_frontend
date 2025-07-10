@@ -9,6 +9,7 @@ const AuthProvider = ({ children }) => {
     const baseUrl = import.meta.env.VITE_BASE_URL
     const [isSigning, setIsSigning] = useState(false)
     const [currentUser, setCurrentUser] = useState("");
+    const [error,setError] = useState("");
     const navigate = useNavigate();
     const [verifyMessage, setVerifyMessage] = useState("")
 
@@ -19,18 +20,10 @@ const AuthProvider = ({ children }) => {
             return true
         }
     }
-
-    const fetchCurrentUser = async ()=>{
-        try {
-            const res = await fetch(`${baseUrl}/auth/${accessToken}`)
-        } catch (err) {
-            console.log(err);
-        }
-    }
     const signup = async (formData) => {
         setIsSigning(true)
         try {
-            const response = await fetch(`${baseUrl}auth/signup`, {
+            const response = await fetch(`${baseUrl}/auth/signup`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -100,14 +93,16 @@ const AuthProvider = ({ children }) => {
     const signin = async (formData) => {
         setIsSigning(true)
         try {
-            const res = await fetch(`${baseUrl}auth/login`, {
+            const res = await fetch(`${baseUrl}/auth/login`, {
                 method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
                 body: JSON.stringify(formData)
             })
             const data = await res.json()
             if (!res.ok || data.status === "error") {
-                // toast.warning(data.message);
-                return
+                return console.log(data);
             }
             console.log(data);
             setCurrentUser(data.user);
@@ -122,6 +117,18 @@ const AuthProvider = ({ children }) => {
     }
 
 
+    // const fetchCurrentUser = async ()=>{
+    //     try {
+    //         const res = await fetch(`${baseUrl}/auth/${accessToken}`)
+    //         if(!res.ok){
+    //             return console.log(res);
+    //         }
+    //         const data = res.json();
+    //         setCurrentUser(data);
+    //     } catch (err) {
+    //         console.log(err);
+    //     }
+    // }
     const verifyEmail = async (token) => {
         try {
             const res = await fetch(`${baseUrl}auth/verify/${token}`, {
@@ -146,7 +153,7 @@ const AuthProvider = ({ children }) => {
         signup,
         sendPassEmail,
         verifyAndChangePass,
-        fetchCurrentUser,
+        // fetchCurrentUser,
         currentUser
     }
     return (

@@ -1,51 +1,16 @@
-import { useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { FiSearch, FiFilter, FiMapPin, FiDollarSign, FiBriefcase, FiClock } from 'react-icons/fi';
 import JobCard from '../components/JobCard';
 import FilterSidebar from '../components/FilterSidebar';
+import { jobContext } from '../context/jobContext';
 
 const Jobs = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [jobs, setJobs] = useState([
-    // Sample job data - replace with API call
-    {
-      id: 1,
-      title: 'Senior Frontend Developer',
-      company: 'TechCorp',
-      location: 'San Francisco, CA',
-      salary: '$120,000 - $150,000',
-      type: 'Full-time',
-      remote: true,
-      posted: '2 days ago',
-      logo: 'https://via.placeholder.com/50',
-      skills: ['React', 'TypeScript', 'Tailwind CSS'],
-    },
-    {
-      id: 2,
-      title: 'Senior Frontend Developer',
-      company: 'TechCorp',
-      location: 'San Francisco, CA',
-      salary: '$120,000 - $150,000',
-      type: 'Full-time',
-      remote: true,
-      posted: '2 days ago',
-      logo: 'https://via.placeholder.com/50',
-      skills: ['React', 'TypeScript', 'Tailwind CSS'],
-    },
-    {
-      id: 3,
-      title: 'Senior Frontend Developer',
-      company: 'TechCorp',
-      location: 'San Francisco, CA',
-      salary: '$120,000 - $150,000',
-      type: 'Full-time',
-      remote: true,
-      posted: '2 days ago',
-      logo: 'https://via.placeholder.com/50',
-      skills: ['React', 'TypeScript', 'Tailwind CSS'],
-    },
-    // Add more jobs
-  ]);
+  const { jobs, fetchAllJobs, isLoading } = useContext(jobContext);
 
+  useEffect(() => {
+    fetchAllJobs();
+  }, [])
   const [filters, setFilters] = useState({
     search: '',
     location: '',
@@ -61,11 +26,7 @@ const Jobs = () => {
       [name]: type === 'checkbox' ? checked : value
     }));
   };
-  // document.addEventListener("click", ()=>{
-  //   if (isFilterOpen) {
-  //     setIsFilterOpen(false);
-  //   }
-  // })
+
   const applyFilters = () => {
     // Apply filters to jobs - in a real app, this would be an API call
     setIsFilterOpen(false);
@@ -109,15 +70,20 @@ const Jobs = () => {
             </div>
 
             <div className="space-y-4">
-              {jobs.length > 0 ? (
+              {isLoading ? (
+                <div>Is loading</div>
+              ): (
+              jobs.length > 0 ? (
                 jobs.map(job => (
-                  <JobCard key={job.id} job={job} />
+                  <JobCard key={job._id} job={job} />
                 ))
               ) : (
                 <div className="bg-white p-8 rounded-lg shadow-sm text-center">
                   <p className="text-gray-600">No jobs match your filters. Try adjusting your search criteria.</p>
                 </div>
-              )}
+              )
+              )
+              }
             </div>
 
             {/* Pagination would go here */}
@@ -127,9 +93,9 @@ const Jobs = () => {
           {isFilterOpen && (
             <div className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden">
               <div className="absolute right-0 top-0 h-full w-4/5 bg-white shadow-lg overflow-y-auto">
-                <FilterSidebar 
-                  filters={filters} 
-                  onFilterChange={handleFilterChange} 
+                <FilterSidebar
+                  filters={filters}
+                  onFilterChange={handleFilterChange}
                   onApply={applyFilters}
                   onClose={() => setIsFilterOpen(false)}
                 />
@@ -139,9 +105,9 @@ const Jobs = () => {
 
           {/* Filter Sidebar - Desktop */}
           <div className="hidden lg:block w-80">
-            <FilterSidebar 
-              filters={filters} 
-              onFilterChange={handleFilterChange} 
+            <FilterSidebar
+              filters={filters}
+              onFilterChange={handleFilterChange}
               onApply={applyFilters}
             />
           </div>

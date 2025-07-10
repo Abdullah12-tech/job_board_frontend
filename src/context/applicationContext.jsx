@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authContext } from "./AuthContext";
 
@@ -7,6 +7,7 @@ export const applicationContext = createContext();
 const ApplicationProvider = ({ children })=>{
     const baseUrl = import.meta.env.VITE_BASE_URL;
     const {currentUser} = useContext(authContext);
+    const [applications, setApplications] = useState("");
     const navigate = useNavigate();
     const applyJob = async (formData)=>{
         try {
@@ -26,13 +27,16 @@ const ApplicationProvider = ({ children })=>{
     const getAllApplicationForCurrentUser = async ()=>{
         try {
             const res = await fetch(`${baseUrl}/applications`)
+            const data = await res.json();
+            setApplications(data);
         } catch (err) {
             console.log(err);
         }
     }
     const value = {
         applyJob,
-        getAllApplicationForCurrentUser
+        getAllApplicationForCurrentUser,
+        applications
     }
     return (
         <applicationContext.Provider value={value}>

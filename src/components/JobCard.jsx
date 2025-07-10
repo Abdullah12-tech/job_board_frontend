@@ -17,7 +17,7 @@ const JobCard = ({ job }) => {
           <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm">Remote</span>
         )}
         {job.salary && (
-          <span className="bg-green-100 text-success px-3 py-1 rounded-full text-sm">{job.salary}</span>
+          <span className="bg-green-100 text-success px-3 py-1 rounded-full text-sm">{job.salary.min} - {}</span>
         )}
       </div>
       {job.skills && job.skills.length > 0 && (
@@ -36,7 +36,7 @@ const JobCard = ({ job }) => {
       )}
       <div className="flex justify-between items-center">
         <span className="text-gray-500 text-sm">Posted {job.posted}</span>
-        <Link to={`/jobs/${job.id}`} className="text-primary font-medium hover:underline">
+        <Link to={`/jobs/${job._id}`} className="text-primary font-medium hover:underline">
           View Details
         </Link>
       </div>
