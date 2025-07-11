@@ -58,7 +58,7 @@ const Header = () => {
               <Menu as="div" className="relative">
                 <Menu.Button className="flex items-center space-x-2 focus:outline-none">
                   <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center">
-                    {user}
+                    {currentUser.name}
                   </div>
                 </Menu.Button>
                 <Transition

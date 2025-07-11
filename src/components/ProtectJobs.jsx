@@ -1,14 +1,16 @@
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { Outlet, useNavigate } from "react-router-dom";
+import { authContext } from "../context/AuthContext";
 
 const JobProtect = ()=>{
-    const [isLoggedIn, setIsLoggedIn] = useState(true);
+    const {isAuthenticated} = useContext(authContext);
+    const isAuth = isAuthenticated();
     const navigate = useNavigate()
     useEffect(() => {
-        if(!isLoggedIn){
+        if(!isAuth){
             navigate("/login");
         }
-    },[isLoggedIn, navigate])
-    return isLoggedIn ? <Outlet/> : null;
+    },[isAuth, navigate])
+    return isAuth ? <Outlet/> : null;
 }
 export default JobProtect;

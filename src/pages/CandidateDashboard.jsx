@@ -1,53 +1,10 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { FiBriefcase, FiBookmark, FiUser, FiSettings, FiBell, FiMessageSquare } from 'react-icons/fi';
+import { authContext } from '../context/AuthContext';
 
 const CandidateDashboard = () => {
   const [activeTab, setActiveTab] = useState('profile');
-  const [user, setUser] = useState({
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    title: 'Senior Frontend Developer',
-    location: 'San Francisco, CA',
-    skills: ['React', 'TypeScript', 'Node.js', 'GraphQL'],
-    experience: [
-      {
-        id: 1,
-        role: 'Frontend Developer',
-        company: 'TechCorp',
-        duration: '2018 - Present',
-        description: 'Developed and maintained web applications using React and TypeScript.'
-      },
-      // Add more experience
-    ],
-    education: [
-      {
-        id: 1,
-        degree: 'B.Sc. Computer Science',
-        institution: 'Stanford University',
-        year: '2014 - 2018'
-      }
-    ],
-    applications: [
-      {
-        id: 1,
-        jobTitle: 'Senior Frontend Developer',
-        company: 'TechCorp',
-        status: 'Under Review',
-        applied: '2 days ago'
-      },
-      // Add more applications
-    ],
-    savedJobs: [
-      {
-        id: 1,
-        jobTitle: 'Full Stack Developer',
-        company: 'DevSolutions',
-        location: 'Remote',
-        saved: '1 week ago'
-      },
-      // Add more saved jobs
-    ]
-  });
+  const {currentUser} = useContext(authContext);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -58,10 +15,10 @@ const CandidateDashboard = () => {
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-8">
               <div className="flex flex-col items-center mb-6">
                 <div className="w-24 h-24 rounded-full bg-primary text-white flex items-center justify-center text-3xl font-bold mb-3">
-                  {user.name.charAt(0)}
+                  {currentUser.name.charAt(0)}
                 </div>
-                <h2 className="text-xl font-bold">{user.name}</h2>
-                <p className="text-gray-600">{user.title}</p>
+                <h2 className="text-xl font-bold">{currentUser.name}</h2>
+                <p className="text-gray-600">{currentUser.title}</p>
               </div>
               
               <nav className="space-y-2">
@@ -125,8 +82,8 @@ const CandidateDashboard = () => {
                         <label className="block text-gray-600 text-sm mb-1">Full Name</label>
                         <input
                           type="text"
-                          value={user.name}
-                          onChange={(e) => setUser({...user, name: e.target.value})}
+                          value={currentUser.name}
+                          onChange={(e) => setUser({...currentUser, name: e.target.value})}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                         />
                       </div>
@@ -134,8 +91,8 @@ const CandidateDashboard = () => {
                         <label className="block text-gray-600 text-sm mb-1">Email</label>
                         <input
                           type="email"
-                          value={user.email}
-                          onChange={(e) => setUser({...user, email: e.target.value})}
+                          value={currentUser.email}
+                          onChange={(e) => setUser({...currentUser, email: e.target.value})}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                         />
                       </div>
@@ -143,8 +100,8 @@ const CandidateDashboard = () => {
                         <label className="block text-gray-600 text-sm mb-1">Title</label>
                         <input
                           type="text"
-                          value={user.title}
-                          onChange={(e) => setUser({...user, title: e.target.value})}
+                          value={currentUser.title}
+                          onChange={(e) => setUser({...currentUser, title: e.target.value})}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                         />
                       </div>
@@ -153,7 +110,7 @@ const CandidateDashboard = () => {
                         <input
                           type="text"
                           value={user.location}
-                          onChange={(e) => setUser({...user, location: e.target.value})}
+                          onChange={(e) => setUser({...currentUser, location: e.target.value})}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                         />
                       </div>
@@ -165,13 +122,13 @@ const CandidateDashboard = () => {
                     <div>
                       <label className="block text-gray-600 text-sm mb-1">Your Skills</label>
                       <div className="flex flex-wrap gap-2 mb-4">
-                        {user.skills.map((skill, index) => (
+                        {currentUser.skills.map((skill, index) => (
                           <span key={index} className="bg-blue-100 text-primary px-3 py-1 rounded-full text-sm flex items-center">
                             {skill}
                             <button 
                               onClick={() => setUser({
                                 ...user, 
-                                skills: user.skills.filter((_, i) => i !== index)
+                                skills: currentUser.skills.filter((_, i) => i !== index)
                               })}
                               className="ml-2 text-gray-500 hover:text-gray-700"
                             >
@@ -187,8 +144,8 @@ const CandidateDashboard = () => {
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' && e.target.value.trim()) {
                               setUser({
-                                ...user, 
-                                skills: [...user.skills, e.target.value.trim()]
+                                ...currentUser, 
+                                skills: [...currentUser.skills, e.target.value.trim()]
                               });
                               e.target.value = '';
                             }
@@ -200,8 +157,8 @@ const CandidateDashboard = () => {
                             const input = e.target.previousElementSibling;
                             if (input.value.trim()) {
                               setUser({
-                                ...user, 
-                                skills: [...user.skills, input.value.trim()]
+                                ...currentUser, 
+                                skills: [...currentUser.skills, input.value.trim()]
                               });
                               input.value = '';
                             }
@@ -225,7 +182,7 @@ const CandidateDashboard = () => {
                   </div>
                   
                   <div className="space-y-4">
-                    {user.experience.map(exp => (
+                    {currentUser.experience.map(exp => (
                       <div key={exp.id} className="border border-gray-200 rounded-lg p-4">
                         <div className="flex justify-between">
                           <h3 className="font-bold">{exp.role} at {exp.company}</h3>
@@ -251,7 +208,7 @@ const CandidateDashboard = () => {
                   </div>
                   
                   <div className="space-y-4">
-                    {user.education.map(edu => (
+                    {currentUser.education.map(edu => (
                       <div key={edu.id} className="border border-gray-200 rounded-lg p-4">
                         <div className="flex justify-between">
                           <h3 className="font-bold">{edu.degree}</h3>
@@ -280,8 +237,8 @@ const CandidateDashboard = () => {
                 <h1 className="text-2xl font-bold p-6 border-b border-gray-200">Job Applications</h1>
                 
                 <div className="divide-y divide-gray-200">
-                  {user.applications.length > 0 ? (
-                    user.applications.map(app => (
+                  {currentUser.applications.length > 0 ? (
+                    currentUser.applications.map(app => (
                       <div key={app.id} className="p-6 hover:bg-gray-50">
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                           <div>
@@ -322,8 +279,8 @@ const CandidateDashboard = () => {
                 <h1 className="text-2xl font-bold p-6 border-b border-gray-200">Saved Jobs</h1>
                 
                 <div className="divide-y divide-gray-200">
-                  {user.savedJobs.length > 0 ? (
-                    user.savedJobs.map(job => (
+                  {currentUser.savedJobs.length > 0 ? (
+                    currentUser.savedJobs.map(job => (
                       <div key={job.id} className="p-6 hover:bg-gray-50">
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                           <div>

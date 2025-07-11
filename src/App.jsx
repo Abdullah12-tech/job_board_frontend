@@ -1,6 +1,4 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Header from './components/Header';
-import Footer from './components/Footer';
 import Home from './pages/Home';
 import Jobs from './pages/Jobs';
 import JobDetails from './pages/JobDetails';
@@ -21,6 +19,11 @@ import CompanyDashboard from './pages/CompanyDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import MainLayout from './layouts/MainLayout';
 import DashboardProtect from './components/DashboardProtect';
+import CompanyProfile from './pages/CompanyProfile';
+import VerifyAccount from './pages/VerifyAccount';
+import ForgotPassword from './pages/ForgetPassword';
+import { Toaster } from 'sonner';
+import IsEmployer from './components/isEmployer';
 
 function App() {
   return (
@@ -30,6 +33,7 @@ function App() {
           <ApplicationProvider>
             <div className="flex flex-col min-h-screen">
               <main className="flex-grow">
+                <Toaster position='top right' />
                 <Routes>
                   <Route element={<MainLayout />}>
                     <Route path="/" element={<Home />} />
@@ -38,13 +42,18 @@ function App() {
                     <Route path="/companies" element={<Companies />} />
                     <Route path="/companies/:id" element={<CompanyDetails />} />
                     <Route path="/candidates" element={<Candidates />} />
-                    <Route element={<DashboardProtect/>}>
+                    <Route element={<DashboardProtect />}>
                       <Route path="/dashboard/candidate" element={<CandidateDashboard />} />
                     </Route>
                     <Route path="/dashboard/company" element={<CompanyDashboard />} />
+                    <Route path="/dashboard/company/profile" element={<CompanyProfile />} />
+                    <Route path="/verify-account/:token" element={<VerifyAccount />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/login" element={<Login />} />
                     <Route element={<JobProtect />}>
-                      <Route path="/post-job" element={<PostJob />} />
+                      <Route element={<IsEmployer/>}>
+                        <Route path="/post-job" element={<PostJob />} />
+                      </Route>
                       <Route path="/apply/:id" element={<ApplyJob />} />
                     </Route>
                     <Route path="/register" element={<Register />} />

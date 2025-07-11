@@ -16,8 +16,8 @@ const JobCard = ({ job }) => {
         {job.remote && (
           <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm">Remote</span>
         )}
-        {job.salary && (
-          <span className="bg-green-100 text-success px-3 py-1 rounded-full text-sm">{job.salary.min} - {}</span>
+        {job.salaryRange && (
+          <span className="bg-green-100 text-success px-3 py-1 rounded-full text-sm">{job.salaryRange.min} - {job.salaryRange.max}</span>
         )}
       </div>
       {job.skills && job.skills.length > 0 && (

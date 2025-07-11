@@ -1,6 +1,6 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {toast} from "sooner"
+import { toast } from "sonner";
 
 export const authContext = createContext();
 
@@ -8,9 +8,11 @@ const AuthProvider = ({ children }) => {
     const accessToken = localStorage.getItem("accessToken")
     const baseUrl = import.meta.env.VITE_BASE_URL
     const [isSigning, setIsSigning] = useState(false)
-    const [currentUser, setCurrentUser] = useState("");
+    const [currentUser, setCurrentUser] = useState(null);
     const [error,setError] = useState("");
+    const [status, setStatus] = useState("verifying");
     const navigate = useNavigate();
+    const token = localStorage.getItem("accessToken");
     const [verifyMessage, setVerifyMessage] = useState("")
 
     const isAuthenticated = () => {
@@ -20,6 +22,14 @@ const AuthProvider = ({ children }) => {
             return true
         }
     }
+
+    useEffect(()=>{
+        if(token){
+            const user = JSON.parse(atob(token.split(".")[1]));
+            setCurrentUser(user);
+            console.log(user);
+        }
+    },[])
     const signup = async (formData) => {
         setIsSigning(true)
         try {
@@ -34,14 +44,14 @@ const AuthProvider = ({ children }) => {
             console.log(data);
 
             if (!response.ok && data.status === "error") {
-                // toast.warning(`${data.message}`)
-                return
+                throw new Error(data.message || "Something went wrong")
             }
-            // toast.success("You have successfully signed up, a verification mail has been sent to you.")
+            toast.success("You have successfully signed up, a verification mail has been sent to you.")
             navigate("/login")
 
         } catch (error) {
             console.log(error)
+            toast.warning(error.message)
         } finally {
             setIsSigning(false)
         }
@@ -102,43 +112,42 @@ const AuthProvider = ({ children }) => {
             })
             const data = await res.json()
             if (!res.ok || data.status === "error") {
-                return console.log(data);
+                throw new Error(data.message);
             }
             console.log(data);
-            setCurrentUser(data.user);
             localStorage.setItem("accessToken", data.accessToken)
+            toast.success("You have successfully loggedin")
+            if (data.user.role === "employer") {
+                navigate("/dashboard/company")
+            }else{
+                navigate("/dashboard/candidate")
+            }
             // toast.success("You have successfully logged in")
-            navigate("/dashboard")
+            navigate("/dashboard/candidate")
         } catch (err) {
             console.log(err);
+            toast.warning(err.message);
         } finally {
             setIsSigning(false)
         }
     }
 
-
-    // const fetchCurrentUser = async ()=>{
-    //     try {
-    //         const res = await fetch(`${baseUrl}/auth/${accessToken}`)
-    //         if(!res.ok){
-    //             return console.log(res);
-    //         }
-    //         const data = res.json();
-    //         setCurrentUser(data);
-    //     } catch (err) {
-    //         console.log(err);
-    //     }
-    // }
     const verifyEmail = async (token) => {
+        setStatus("verifying");
         try {
-            const res = await fetch(`${baseUrl}auth/verify/${token}`, {
+            const res = await fetch(`${baseUrl}/auth/verify/${token}`, {
                 method: "POST",
             })
             const data = await res.json()
+            if(res.ok){
+                setStatus("success")
+            }
             console.log(data);
             setVerifyMessage(data.message)
         } catch (err) {
             console.log(err);
+            setStatus("error")
+            setVerifyMessage(err)
         }
     }
 
@@ -153,8 +162,8 @@ const AuthProvider = ({ children }) => {
         signup,
         sendPassEmail,
         verifyAndChangePass,
-        // fetchCurrentUser,
-        currentUser
+        currentUser,
+        status
     }
     return (
         <authContext.Provider value={value}>
