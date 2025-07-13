@@ -6,11 +6,12 @@ import { authContext } from '../context/AuthContext';
 
 const Header = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const {currentUser,fetchCurrentUser} = useContext(authContext);
   const token = localStorage.getItem("accessToken");
-  // useEffect(()=>{
-  //   fetchCurrentUser();
-  // },[token])
+  const {currentUser} = useContext(authContext);
+  const handleLogout = ()=>{
+    localStorage.removeItem("accessToken")
+  }
+
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -58,7 +59,7 @@ const Header = () => {
               <Menu as="div" className="relative">
                 <Menu.Button className="flex items-center space-x-2 focus:outline-none">
                   <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center">
-                    {currentUser.name}
+                    {currentUser?.name}
                   </div>
                 </Menu.Button>
                 <Transition
@@ -79,7 +80,7 @@ const Header = () => {
                     </Menu.Item>
                     <Menu.Item>
                       {({ active }) => (
-                        <button className={`w-full text-left px-4 py-2 text-sm ${active ? 'bg-gray-100' : 'text-gray-700'}`}>
+                        <button onClick={handleLogout} className={`w-full text-left px-4 py-2 text-sm ${active ? 'bg-gray-100' : 'text-gray-700'}`}>
                           Sign Out
                         </button>
                       )}

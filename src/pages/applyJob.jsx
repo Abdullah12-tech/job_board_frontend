@@ -73,7 +73,7 @@ const ApplyJob = () => {
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="bg-gray-100 px-6 py-4 border-b border-gray-200">
             <h1 className="text-2xl font-bold">Apply for {singleJob?.title || 'Job'}</h1>
-            <p className="text-primary">{singleJob?.postedBy?.companyName || 'Company'} • {singleJob?.location || 'Location'}</p>
+            <p className="text-primary">{singleJob?.companyName || 'Company'} • {singleJob?.location || 'Location'}</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">

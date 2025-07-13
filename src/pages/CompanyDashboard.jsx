@@ -1,14 +1,38 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  FiBriefcase, FiUsers, FiDollarSign, FiBarChart2, 
+import {
+  FiBriefcase, FiUsers, FiDollarSign, FiBarChart2,
   FiSettings, FiBell, FiMessageSquare, FiBookmark,
   FiCalendar, FiCheckCircle, FiClock, FiSearch,
-  FiX
+  FiX,
+  FiUser,
+  FiEdit2,
+  FiGlobe,
+  FiLinkedin,
+  FiMapPin,
+  FiMail,
+  FiPhone,
+  FiSave
 } from 'react-icons/fi';
+import * as yup from "yup"
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useForm } from 'react-hook-form';
 
+
+
+const profileSchema = yup.object({
+  companyName: yup.string().required('Company name is required'),
+  website: yup.string().url('Enter a valid URL').required('Website is required'),
+  linkedin: yup.string().url('Enter a valid URL').nullable(),
+  description: yup.string().max(500, 'Description must be less than 500 characters').required('Description is required'),
+  industry: yup.string().required('Industry is required'),
+  companySize: yup.string().required('Company size is required'),
+  location: yup.string().required('Location is required'),
+  phone: yup.string().nullable(),
+  email: yup.string().email('Enter a valid email').required('Email is required'),
+});
 const CompanyDashboard = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('profile');
   const [jobs, setJobs] = useState([
     {
       id: 1,
@@ -36,55 +60,65 @@ const CompanyDashboard = () => {
     }
   ]);
 
-  const [applicants, setApplicants] = useState([
-    {
-      id: 1,
-      name: 'Alex Johnson',
-      job: 'Senior Frontend Developer',
-      status: 'New',
-      applied: '2 hours ago',
-      match: '85%'
-    },
-    {
-      id: 2,
-      name: 'Sarah Miller',
-      job: 'UX Designer',
-      status: 'Interview',
-      applied: '1 day ago',
-      match: '92%'
-    },
-    {
-      id: 3,
-      name: 'David Kim',
-      job: 'Backend Engineer',
-      status: 'Rejected',
-      applied: '3 days ago',
-      match: '76%'
-    }
-  ]);
+
+
+  //profile functions
+  const [isEditing, setIsEditing] = useState(false);
+    const [logo, setLogo] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+  
+    const {
+      register,
+      handleSubmit,
+      formState: { errors },
+      reset,
+    } = useForm({
+      resolver: yupResolver(profileSchema),
+      defaultValues: {
+        companyName: 'TechCorp Inc.',
+        website: 'https://techcorp.example.com',
+        linkedin: 'https://linkedin.com/company/techcorp',
+        description: 'A leading technology company specializing in innovative software solutions for businesses worldwide.',
+        industry: 'Technology',
+        companySize: '51-200',
+        location: 'San Francisco, CA',
+        phone: '+1 (555) 123-4567',
+        email: 'contact@techcorp.example.com',
+      },
+    });
+  
+    const onSubmit = async (data) => {
+      setIsLoading(true);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log('Profile updated:', data);
+      setIsEditing(false);
+      setIsLoading(false);
+    };
+  
+    const handleEditClick = () => {
+      setIsEditing(true);
+    };
+  
+    const handleCancelClick = () => {
+      reset();
+      setIsEditing(false);
+    };
+  
+    const handleLogoChange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setLogo(reader.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">Company Dashboard</h1>
-            <div className="flex items-center space-x-4">
-              <button className="p-2 text-gray-500 hover:text-primary relative">
-                <FiBell size={20} />
-                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-              <button className="p-2 text-gray-500 hover:text-primary">
-                <FiMessageSquare size={20} />
-              </button>
-              <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center">
-                <span>AD</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
@@ -93,11 +127,11 @@ const CompanyDashboard = () => {
             <div className="bg-white rounded-lg shadow-sm p-4 sticky top-8">
               <nav className="space-y-1">
                 <button
-                  onClick={() => setActiveTab('overview')}
-                  className={`w-full text-left px-4 py-3 rounded-lg flex items-center ${activeTab === 'overview' ? 'bg-blue-50 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}
+                  onClick={() => setActiveTab('profile')}
+                  className={`w-full text-left px-4 py-3 rounded-lg flex items-center ${activeTab === 'profile' ? 'bg-blue-50 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}
                 >
-                  <FiBarChart2 className="mr-3" />
-                  <span>Overview</span>
+                  <FiUser className="mr-3" />
+                  <span>Profile</span>
                 </button>
                 <button
                   onClick={() => setActiveTab('jobs')}
@@ -105,27 +139,6 @@ const CompanyDashboard = () => {
                 >
                   <FiBriefcase className="mr-3" />
                   <span>Jobs</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab('candidates')}
-                  className={`w-full text-left px-4 py-3 rounded-lg flex items-center ${activeTab === 'candidates' ? 'bg-blue-50 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}
-                >
-                  <FiUsers className="mr-3" />
-                  <span>Candidates</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab('analytics')}
-                  className={`w-full text-left px-4 py-3 rounded-lg flex items-center ${activeTab === 'analytics' ? 'bg-blue-50 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}
-                >
-                  <FiDollarSign className="mr-3" />
-                  <span>Analytics</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab('settings')}
-                  className={`w-full text-left px-4 py-3 rounded-lg flex items-center ${activeTab === 'settings' ? 'bg-blue-50 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}
-                >
-                  <FiSettings className="mr-3" />
-                  <span>Settings</span>
                 </button>
               </nav>
 
@@ -142,117 +155,291 @@ const CompanyDashboard = () => {
 
           {/* Main Content */}
           <div className="flex-1">
-            {activeTab === 'overview' && (
-              <div className="space-y-6">
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-gray-500">Active Jobs</p>
-                        <h3 className="text-2xl font-bold mt-1">5</h3>
+            {activeTab === "profile" && (
+              <div className="bg-white rounded-lg shadow overflow-hidden">
+                {/* Header */}
+                <div className="bg-blue-600 px-6 py-8 text-white">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="relative">
+                        {logo ? (
+                          <img
+                            src={logo}
+                            alt="Company logo"
+                            className="w-16 h-16 rounded-full object-cover border-4 border-white"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center text-2xl font-bold">
+                            TC
+                          </div>
+                        )}
+                        {isEditing && (
+                          <label className="absolute -bottom-2 -right-2 bg-white rounded-full p-1 shadow cursor-pointer">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleLogoChange}
+                              className="hidden"
+                            />
+                            <FiEdit2 className="h-5 w-5 text-blue-600" />
+                          </label>
+                        )}
                       </div>
-                      <div className="p-3 rounded-full bg-blue-100 text-primary">
-                        <FiBriefcase size={20} />
+                      <div>
+                        {isEditing ? (
+                          <input
+                            {...register('companyName')}
+                            className="text-2xl font-bold bg-white/20 rounded px-2 py-1 w-full"
+                          />
+                        ) : (
+                          <h1 className="text-2xl font-bold">TechCorp Inc.</h1>
+                        )}
+                        <p className="text-blue-100">
+                          {isEditing ? (
+                            <input
+                              {...register('industry')}
+                              className="text-sm bg-white/20 rounded px-2 py-1 w-full"
+                            />
+                          ) : (
+                            'Technology'
+                          )}
+                        </p>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-gray-500">Total Applicants</p>
-                        <h3 className="text-2xl font-bold mt-1">74</h3>
+                    {isEditing ? (
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={handleCancelClick}
+                          className="px-4 py-2 bg-white/20 rounded hover:bg-white/30"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleSubmit(onSubmit)}
+                          disabled={isLoading}
+                          className="px-4 py-2 bg-white text-blue-600 rounded hover:bg-gray-100 flex items-center"
+                        >
+                          {isLoading ? (
+                            <>
+                              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <FiSave className="mr-1" />
+                              Save
+                            </>
+                          )}
+                        </button>
                       </div>
-                      <div className="p-3 rounded-full bg-green-100 text-green-500">
-                        <FiUsers size={20} />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-gray-500">Interviewing</p>
-                        <h3 className="text-2xl font-bold mt-1">12</h3>
-                      </div>
-                      <div className="p-3 rounded-full bg-purple-100 text-purple-500">
-                        <FiCalendar size={20} />
-                      </div>
-                    </div>
+                    ) : (
+                      <button
+                        onClick={handleEditClick}
+                        className="px-4 py-2 bg-white/20 rounded hover:bg-white/30 flex items-center"
+                      >
+                        <FiEdit2 className="mr-1" />
+                        Edit Profile
+                      </button>
+                    )}
                   </div>
                 </div>
 
-                {/* Recent Activity */}
-                <div className="bg-white rounded-lg shadow-sm p-6">
-                  <h2 className="text-xl font-bold mb-4">Recent Activity</h2>
-                  <div className="space-y-4">
-                    {[
-                      { id: 1, action: 'Sarah Miller applied to UX Designer', time: '2 hours ago', status: 'new' },
-                      { id: 2, action: 'You posted Backend Engineer job', time: '1 day ago', status: 'job' },
-                      { id: 3, action: 'David Kim rejected for Backend role', time: '2 days ago', status: 'rejected' }
-                    ].map(item => (
-                      <div key={item.id} className="flex items-start pb-4 border-b border-gray-100 last:border-0">
-                        <div className={`p-2 rounded-full mr-4 ${
-                          item.status === 'new' ? 'bg-blue-100 text-primary' :
-                          item.status === 'job' ? 'bg-green-100 text-green-500' :
-                          'bg-red-100 text-red-500'
-                        }`}>
-                          {item.status === 'new' && <FiUsers size={16} />}
-                          {item.status === 'job' && <FiBriefcase size={16} />}
-                          {item.status === 'rejected' && <FiX size={16} />}
+                {/* Content */}
+                <div className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Left Column */}
+                    <div>
+                      <h2 className="text-lg font-semibold mb-4">Company Information</h2>
+
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">Description</label>
+                          {isEditing ? (
+                            <>
+                              <textarea
+                                {...register('description')}
+                                rows={4}
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                              />
+                              {errors.description && (
+                                <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+                              )}
+                            </>
+                          ) : (
+                            <p className="mt-1 text-gray-700">
+                              A leading technology company specializing in innovative software solutions for businesses worldwide.
+                            </p>
+                          )}
                         </div>
-                        <div className="flex-1">
-                          <p className="font-medium">{item.action}</p>
-                          <p className="text-gray-500 text-sm">{item.time}</p>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">Website</label>
+                          {isEditing ? (
+                            <div className="mt-1 relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FiGlobe className="h-5 w-5 text-gray-400" />
+                              </div>
+                              <input
+                                {...register('website')}
+                                type="url"
+                                className="pl-10 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                              />
+                              {errors.website && (
+                                <p className="mt-1 text-sm text-red-600">{errors.website.message}</p>
+                              )}
+                            </div>
+                          ) : (
+                            <a
+                              href="https://techcorp.example.com"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-1 text-blue-600 hover:underline flex items-center"
+                            >
+                              <FiGlobe className="mr-1" />
+                              techcorp.example.com
+                            </a>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">LinkedIn</label>
+                          {isEditing ? (
+                            <div className="mt-1 relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FiLinkedin className="h-5 w-5 text-gray-400" />
+                              </div>
+                              <input
+                                {...register('linkedin')}
+                                type="url"
+                                className="pl-10 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                placeholder="https://linkedin.com/company/yourcompany"
+                              />
+                              {errors.linkedin && (
+                                <p className="mt-1 text-sm text-red-600">{errors.linkedin.message}</p>
+                              )}
+                            </div>
+                          ) : (
+                            <a
+                              href="https://linkedin.com/company/techcorp"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-1 text-blue-600 hover:underline flex items-center"
+                            >
+                              <FiLinkedin className="mr-1" />
+                              linkedin.com/company/techcorp
+                            </a>
+                          )}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
 
-                {/* Recent Jobs */}
-                <div className="bg-white rounded-lg shadow-sm p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold">Recent Jobs</h2>
-                    <Link to="/jobs" className="text-primary hover:underline">View All</Link>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job Title</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applicants</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {jobs.map(job => (
-                          <tr key={job.id}>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="font-medium">{job.title}</div>
-                              <div className="text-sm text-gray-500">Posted {job.posted}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="font-medium">{job.applicants}</div>
-                              <div className="text-sm text-gray-500">{job.views} views</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2 py-1 text-xs rounded-full ${
-                                job.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                              }`}>
-                                {job.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <Link to={`/dashboard/jobs/${job.id}`} className="text-primary hover:text-accent mr-3">View</Link>
-                              <button className="text-gray-600 hover:text-gray-900">Edit</button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    {/* Right Column */}
+                    <div>
+                      <h2 className="text-lg font-semibold mb-4">Contact Information</h2>
+
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">Location</label>
+                          {isEditing ? (
+                            <div className="mt-1 relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FiMapPin className="h-5 w-5 text-gray-400" />
+                              </div>
+                              <input
+                                {...register('location')}
+                                type="text"
+                                className="pl-10 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                              />
+                              {errors.location && (
+                                <p className="mt-1 text-sm text-red-600">{errors.location.message}</p>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="mt-1 text-gray-700 flex items-center">
+                              <FiMapPin className="mr-1" />
+                              San Francisco, CA
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">Company Size</label>
+                          {isEditing ? (
+                            <select
+                              {...register('companySize')}
+                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                            >
+                              <option value="">Select company size</option>
+                              <option value="1-10">1-10 employees</option>
+                              <option value="11-50">11-50 employees</option>
+                              <option value="51-200">51-200 employees</option>
+                              <option value="201-500">201-500 employees</option>
+                              <option value="501-1000">501-1000 employees</option>
+                              <option value="1001+">1001+ employees</option>
+                            </select>
+                          ) : (
+                            <p className="mt-1 text-gray-700 flex items-center">
+                              <FiUsers className="mr-1" />
+                              51-200 employees
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">Contact Email</label>
+                          {isEditing ? (
+                            <div className="mt-1 relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FiMail className="h-5 w-5 text-gray-400" />
+                              </div>
+                              <input
+                                {...register('email')}
+                                type="email"
+                                className="pl-10 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                              />
+                              {errors.email && (
+                                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                              )}
+                            </div>
+                          ) : (
+                            <a
+                              href="mailto:contact@techcorp.example.com"
+                              className="mt-1 text-blue-600 hover:underline flex items-center"
+                            >
+                              <FiMail className="mr-1" />
+                              contact@techcorp.example.com
+                            </a>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">Phone Number</label>
+                          {isEditing ? (
+                            <div className="mt-1 relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FiPhone className="h-5 w-5 text-gray-400" />
+                              </div>
+                              <input
+                                {...register('phone')}
+                                type="tel"
+                                className="pl-10 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                              />
+                            </div>
+                          ) : (
+                            <a
+                              href="tel:+15551234567"
+                              className="mt-1 text-blue-600 hover:underline flex items-center"
+                            >
+                              <FiPhone className="mr-1" />
+                              +1 (555) 123-4567
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -263,7 +450,7 @@ const CompanyDashboard = () => {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
                   <h2 className="text-xl font-bold">Your Job Posts</h2>
                   <div className="mt-4 md:mt-0">
-                    <Link 
+                    <Link
                       to="/post-job"
                       className="px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-accent"
                     >
@@ -297,12 +484,11 @@ const CompanyDashboard = () => {
                           </div>
                         </div>
                         <div className="flex items-center space-x-3">
-                          <span className={`px-3 py-1 text-sm rounded-full ${
-                            job.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                          }`}>
+                          <span className={`px-3 py-1 text-sm rounded-full ${job.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                            }`}>
                             {job.status}
                           </span>
-                          <Link 
+                          <Link
                             to={`/dashboard/jobs/${job.id}`}
                             className="px-3 py-1 bg-blue-50 text-primary rounded-lg text-sm font-medium hover:bg-blue-100"
                           >
@@ -386,19 +572,18 @@ const CompanyDashboard = () => {
                               <div className="text-sm font-medium">{applicant.job}</div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2 py-1 text-xs rounded-full ${
-                                applicant.status === 'New' ? 'bg-blue-100 text-blue-800' :
-                                applicant.status === 'Interview' ? 'bg-purple-100 text-purple-800' :
-                                'bg-red-100 text-red-800'
-                              }`}>
+                              <span className={`px-2 py-1 text-xs rounded-full ${applicant.status === 'New' ? 'bg-blue-100 text-blue-800' :
+                                  applicant.status === 'Interview' ? 'bg-purple-100 text-purple-800' :
+                                    'bg-red-100 text-red-800'
+                                }`}>
                                 {applicant.status}
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                                  <div 
-                                    className="bg-green-500 h-2 rounded-full" 
+                                  <div
+                                    className="bg-green-500 h-2 rounded-full"
                                     style={{ width: applicant.match }}
                                   ></div>
                                 </div>

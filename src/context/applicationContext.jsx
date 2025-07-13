@@ -35,18 +35,29 @@ const ApplicationProvider = ({ children }) => {
         }
     };
 
-    const getAllApplicationForCurrentUser = async () => {
-        try {
-            const res = await fetch(`${baseUrl}/applications`);
-            const data = await res.json();
-            setApplications(data);
-        } catch (err) {
-            console.error("Fetch applications error:", err);
+    const fetchUserApplications = async () => {
+    try {
+      const res = await fetch(`${baseUrl}/applications`, {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
-    };
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to fetch applications');
+      }
+
+      const data = await res.json();
+      setApplications(data);
+      return data;
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
+  };
 
     return (
-        <applicationContext.Provider value={{ applyJob, getAllApplicationForCurrentUser, applications }}>
+        <applicationContext.Provider value={{ applyJob, fetchUserApplications, applications }}>
             {children}
         </applicationContext.Provider>
     );

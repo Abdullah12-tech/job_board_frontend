@@ -17,6 +17,7 @@ const JobProvider = ({ children }) => {
         try {
             const res = await fetch(`${baseUrl}/jobs`);
             const data = await res.json();
+            console.log(data);
             setJobs(data);
         } catch (err) {
             console.error("Error fetching jobs:", err);

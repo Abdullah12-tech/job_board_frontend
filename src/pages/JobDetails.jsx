@@ -13,17 +13,17 @@ const JobDetails = () => {
 
   if (isLoading) return <div className="p-6">Loading job details...</div>;
 
-  const company = singleJob?.postedBy || {};
+  // const company = singleJob?.postedBy || {};
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="p-6 border-b border-gray-200 flex flex-col md:flex-row gap-6">
-            <img src={company.companyLogo} alt={singleJob.title} className="w-20 h-20 object-contain border border-gray-200 rounded-lg" />
+            <img src={singleJob.companyLogo} alt={singleJob.title} className="w-20 h-20 object-contain border border-gray-200 rounded-lg" />
             <div className="flex-1">
               <h1 className="text-2xl font-bold mb-2">{singleJob.title}</h1>
-              <p className="text-gray-600 mb-4">{company.companyName}</p>
+              <p className="text-gray-600 mb-4">{singleJob.companyName}</p>
 
               <div className="flex flex-wrap gap-4 text-gray-600 text-sm">
                 <div className="flex items-center gap-2"><FiMapPin /> {singleJob.location}</div>

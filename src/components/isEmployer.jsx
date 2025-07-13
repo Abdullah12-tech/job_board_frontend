@@ -6,10 +6,10 @@ const IsEmployer = ()=>{
     const {currentUser } = useContext(authContext);
     const navigate = useNavigate();
     useEffect(()=>{
-        if(!currentUser.role === "employer"){
+        if(currentUser?.role !== "employer"){
             navigate("/dashboard/candidate")
         }
-    },[currentUser.role, navigate])
-    return currentUser.role === "employer" ? <Outlet/> : null 
+    },[currentUser, navigate])
+    return currentUser?.role === "employer" ? <Outlet/> : null 
 }
 export default IsEmployer;

@@ -12,12 +12,13 @@ const postJobSchema = yup.object({
   workType: yup.string().required('Work type is required'),
   hrEmail: yup.string().email("Enter a valid email").required("Hr Email is required"),
   salary: yup.object({
-    min: yup.number().required("Minimum salary is required").min(0, "salary must be greater than zero").transform((value, originalValue) =>
-      originalValue === "" ? undefined : value
-    ),
-    max: yup.number().required("Maximum salary is required").transform((value, originalValue) =>
-      originalValue === "" ? undefined : value
-    )
+    min: yup.number()
+      .required("Minimum salary is required")
+      .min(0, "salary must be greater than zero")
+      .transform((value, originalValue) => originalValue === "" ? undefined : value),
+    max: yup.number()
+      .required("Maximum salary is required")
+      .transform((value, originalValue) => originalValue === "" ? undefined : value)
       .moreThan(yup.ref("min"), "Maximum must be greater than minimum"),
   }),
   description: yup
@@ -36,8 +37,12 @@ const postJobSchema = yup.object({
     .array()
     .of(yup.string().required('Skill is required'))
     .min(1, 'At least one skill is required'),
+  deadline: yup
+    .date()
+    .nullable()
+    .min(new Date(), 'Deadline must be in the future')
+    .required('Deadline is required'),
   createdAt: yup.date().default(() => new Date()),
-  deadline: yup.date().nullable(),
 });
 
 const PostJob = () => {
@@ -52,6 +57,7 @@ const PostJob = () => {
     requirements: [''],
     benefits: [''],
     skills: [''],
+    deadline: '',
   });
 
   const handleArrayChange = (field, index, value) => {
@@ -80,17 +86,28 @@ const PostJob = () => {
     resolver: yupResolver(postJobSchema),
   });
 
-  const submitForm = (data) => {
-    const finalData = {
-      ...data,
-      requirements: job.requirements,
-      benefits: job.benefits,
-      skills: job.skills,
-    };
-    console.log(finalData);
-
-    postJob(finalData);
+ const submitForm = (data) => {
+  const finalData = {
+    title: data.title,
+    description: data.description,
+    hrEmail: data.hrEmail,
+    skills: job.skills,
+    type: data.type,
+    workType: data.workType,
+    location: data.location,
+    salaryRange: {
+      min: data.salary.min,
+      max: data.salary.max,
+      currency: "USD" // Default currency
+    },
+    benefits: job.benefits,
+    requirements: job.requirements,
+    deadline: data.deadline ? new Date(data.deadline).toISOString() : null
   };
+
+  console.log("Final data to submit:", finalData);
+  postJob(finalData);
+};
 
   const renderArrayInputs = (field, label, placeholder) => (
     <div>
@@ -193,7 +210,6 @@ const PostJob = () => {
                     />
                     {errors.salary?.min && <p className="text-red-700">{errors.salary.min.message}</p>}
                   </div>
-
                   <div>
                     <label className="block mb-1">Max Salary*</label>
                     <input
@@ -215,7 +231,16 @@ const PostJob = () => {
                     />
                     {errors.hrEmail && <p className="text-red-700">{errors.hrEmail.message}</p>}
                   </div>
-
+                  <div>
+                    <label className="block mb-1">Application Deadline*</label>
+                    <input
+                      type="date"
+                      {...register("deadline")}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full px-4 py-2 border rounded"
+                    />
+                    {errors.deadline && <p className="text-red-700">{errors.deadline.message}</p>}
+                  </div>
                 </div>
               </div>
               <div>

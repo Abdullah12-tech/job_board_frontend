@@ -24,6 +24,7 @@ import VerifyAccount from './pages/VerifyAccount';
 import ForgotPassword from './pages/ForgetPassword';
 import { Toaster } from 'sonner';
 import IsEmployer from './components/isEmployer';
+import IsCandidate from './components/IsCandidate';
 
 function App() {
   return (
@@ -43,18 +44,20 @@ function App() {
                     <Route path="/companies/:id" element={<CompanyDetails />} />
                     <Route path="/candidates" element={<Candidates />} />
                     <Route element={<DashboardProtect />}>
-                      <Route path="/dashboard/candidate" element={<CandidateDashboard />} />
+                      <Route element={<IsCandidate />}>
+                        <Route path="/dashboard/candidate" element={<CandidateDashboard />} />
+                      </Route>
+                        <Route path="/apply/:id" element={<ApplyJob />} />
+                      <Route element={<IsEmployer />}>
+                        <Route path="/dashboard/company/profile" element={<CompanyProfile />} />
+                        <Route path="/dashboard/company" element={<CompanyDashboard />} />
+                        <Route path="/post-job" element={<PostJob />} />
+                      </Route>
                     </Route>
-                    <Route path="/dashboard/company" element={<CompanyDashboard />} />
-                    <Route path="/dashboard/company/profile" element={<CompanyProfile />} />
                     <Route path="/verify-account/:token" element={<VerifyAccount />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/login" element={<Login />} />
                     <Route element={<JobProtect />}>
-                      <Route element={<IsEmployer/>}>
-                        <Route path="/post-job" element={<PostJob />} />
-                      </Route>
-                      <Route path="/apply/:id" element={<ApplyJob />} />
                     </Route>
                     <Route path="/register" element={<Register />} />
                     <Route path="*" element={<NotFound />} />

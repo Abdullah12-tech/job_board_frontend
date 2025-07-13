@@ -5,10 +5,10 @@ const JobCard = ({ job }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
       <div className="flex items-start mb-4">
-        <img src={job.logo} alt={job.company} className="w-12 h-12 object-contain mr-4" />
+        <img src={job.companyLogoUrl} alt={job.companyName} className="w-12 h-12 object-contain mr-4" />
         <div>
           <h3 className="font-bold text-lg">{job.title}</h3>
-          <p className="text-gray-600">{job.company} • {job.location}</p>
+          <p className="text-gray-600">{job.companyName} • {job.location}</p>
         </div>
       </div>
       <div className="flex flex-wrap gap-2 mb-4">
@@ -17,7 +17,10 @@ const JobCard = ({ job }) => {
           <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm">Remote</span>
         )}
         {job.salaryRange && (
-          <span className="bg-green-100 text-success px-3 py-1 rounded-full text-sm">{job.salaryRange.min} - {job.salaryRange.max}</span>
+          <div>
+            
+            <span className="bg-green-100 text-success px-3 py-1 rounded-full text-sm">$ {job.salaryRange.min} - {job.salaryRange.max}</span>
+          </div>
         )}
       </div>
       {job.skills && job.skills.length > 0 && (

@@ -1,17 +1,17 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiMail, FiArrowLeft } from 'react-icons/fi';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useForm } from 'react-hook-form';
+import { authContext } from '../context/AuthContext';
 
 const schema = yup.object({
   email: yup.string().email('Enter a valid email').required('Email is required'),
 });
 
 const ForgotPassword = () => {
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const {isSigning,isSubmitted, sendPassEmail} = useContext(authContext);
   
   const {
     register,
@@ -22,12 +22,8 @@ const ForgotPassword = () => {
   });
 
   const onSubmit = async (data) => {
-    setIsLoading(true);
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    console.log('Password reset requested for:', data.email);
-    setIsSubmitted(true);
-    setIsLoading(false);
+    sendPassEmail(data);
   };
 
   return (
@@ -97,10 +93,10 @@ const ForgotPassword = () => {
               <div>
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isSigning}
                   className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                  {isLoading ? (
+                  {isSigning ? (
                     <span className="flex items-center">
                       <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
