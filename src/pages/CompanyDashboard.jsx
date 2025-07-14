@@ -1,24 +1,19 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   FiBriefcase, FiUsers, FiDollarSign, FiBarChart2,
   FiSettings, FiBell, FiMessageSquare, FiBookmark,
   FiCalendar, FiCheckCircle, FiClock, FiSearch,
-  FiX,
-  FiUser,
-  FiEdit2,
-  FiGlobe,
-  FiLinkedin,
-  FiMapPin,
-  FiMail,
-  FiPhone,
-  FiSave
+  FiX, FiUser, FiEdit2, FiGlobe, FiLinkedin,
+  FiMapPin, FiMail, FiPhone, FiSave
 } from 'react-icons/fi';
-import * as yup from "yup"
+import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
-
-
+import { toast } from 'sonner';
+import DashboardContext from '../context/CompanyContext';
+import { authContext } from '../context/AuthContext';
+import JobEditModal from '../components/editJobModal';
 
 const profileSchema = yup.object({
   companyName: yup.string().required('Company name is required'),
@@ -30,96 +25,83 @@ const profileSchema = yup.object({
   location: yup.string().required('Location is required'),
   phone: yup.string().nullable(),
   email: yup.string().email('Enter a valid email').required('Email is required'),
+  companyLogoUrl: yup.string().nullable(),
 });
+
 const CompanyDashboard = () => {
-  const [activeTab, setActiveTab] = useState('profile');
-  const [jobs, setJobs] = useState([
-    {
-      id: 1,
-      title: 'Senior Frontend Developer',
-      applicants: 24,
-      status: 'Active',
-      posted: '2 days ago',
-      views: 156
-    },
-    {
-      id: 2,
-      title: 'UX Designer',
-      applicants: 18,
-      status: 'Active',
-      posted: '1 week ago',
-      views: 98
-    },
-    {
-      id: 3,
-      title: 'Backend Engineer',
-      applicants: 32,
-      status: 'Closed',
-      posted: '3 weeks ago',
-      views: 210
-    }
-  ]);
-
-
-
-  //profile functions
+  const { jobs, profile, updateProfile, isLoading } = useContext(DashboardContext);
+  const { isAuthenticated } = useContext(authContext);
+   const [activeTab, setActiveTab] = useState('profile');
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
-    const [logo, setLogo] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
-  
-    const {
-      register,
-      handleSubmit,
-      formState: { errors },
-      reset,
-    } = useForm({
-      resolver: yupResolver(profileSchema),
-      defaultValues: {
-        companyName: 'TechCorp Inc.',
-        website: 'https://techcorp.example.com',
-        linkedin: 'https://linkedin.com/company/techcorp',
-        description: 'A leading technology company specializing in innovative software solutions for businesses worldwide.',
-        industry: 'Technology',
-        companySize: '51-200',
-        location: 'San Francisco, CA',
-        phone: '+1 (555) 123-4567',
-        email: 'contact@techcorp.example.com',
-      },
-    });
-  
-    const onSubmit = async (data) => {
-      setIsLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log('Profile updated:', data);
+  const [logo, setLogo] = useState(null);
+  const [selectedJob, setSelectedJob] = useState(null);
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      toast.warning('Please log in to access the dashboard');
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm({
+    resolver: yupResolver(profileSchema),
+    defaultValues: profile || {
+      companyName: '',
+      website: '',
+      linkedin: '',
+      description: '',
+      industry: '',
+      companySize: '',
+      location: '',
+      phone: '',
+      email: '',
+      companyLogoUrl: '',
+    },
+  });
+
+  const onSubmit = async (data) => {
+    try {
+      await updateProfile({
+        ...data,
+        companyLogoUrl: logo || data.companyLogoUrl,
+      });
+      toast.success('Profile updated successfully');
       setIsEditing(false);
-      setIsLoading(false);
-    };
-  
-    const handleEditClick = () => {
-      setIsEditing(true);
-    };
-  
-    const handleCancelClick = () => {
-      reset();
-      setIsEditing(false);
-    };
-  
-    const handleLogoChange = (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setLogo(reader.result);
-        };
-        reader.readAsDataURL(file);
-      }
-    };
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error(error.message || 'Failed to update profile');
+    }
+  };
+
+  const handleEditClick = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancelClick = () => {
+    reset();
+    setIsEditing(false);
+    setLogo(null);
+  };
+
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogo(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
@@ -141,7 +123,6 @@ const CompanyDashboard = () => {
                   <span>Jobs</span>
                 </button>
               </nav>
-
               <div className="mt-8">
                 <Link
                   to="/post-job"
@@ -155,22 +136,21 @@ const CompanyDashboard = () => {
 
           {/* Main Content */}
           <div className="flex-1">
-            {activeTab === "profile" && (
+            {activeTab === 'profile' && profile && (
               <div className="bg-white rounded-lg shadow overflow-hidden">
-                {/* Header */}
                 <div className="bg-blue-600 px-6 py-8 text-white">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <div className="relative">
-                        {logo ? (
+                        {logo || profile.companyLogoUrl ? (
                           <img
-                            src={logo}
+                            src={logo || profile.companyLogoUrl}
                             alt="Company logo"
                             className="w-16 h-16 rounded-full object-cover border-4 border-white"
                           />
                         ) : (
                           <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center text-2xl font-bold">
-                            TC
+                            {profile.companyName?.charAt(0) || 'C'}
                           </div>
                         )}
                         {isEditing && (
@@ -192,7 +172,7 @@ const CompanyDashboard = () => {
                             className="text-2xl font-bold bg-white/20 rounded px-2 py-1 w-full"
                           />
                         ) : (
-                          <h1 className="text-2xl font-bold">TechCorp Inc.</h1>
+                          <h1 className="text-2xl font-bold">{profile.companyName}</h1>
                         )}
                         <p className="text-blue-100">
                           {isEditing ? (
@@ -201,7 +181,7 @@ const CompanyDashboard = () => {
                               className="text-sm bg-white/20 rounded px-2 py-1 w-full"
                             />
                           ) : (
-                            'Technology'
+                            profile.industry
                           )}
                         </p>
                       </div>
@@ -246,14 +226,10 @@ const CompanyDashboard = () => {
                     )}
                   </div>
                 </div>
-
-                {/* Content */}
                 <div className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Left Column */}
                     <div>
                       <h2 className="text-lg font-semibold mb-4">Company Information</h2>
-
                       <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-500">Description</label>
@@ -269,12 +245,9 @@ const CompanyDashboard = () => {
                               )}
                             </>
                           ) : (
-                            <p className="mt-1 text-gray-700">
-                              A leading technology company specializing in innovative software solutions for businesses worldwide.
-                            </p>
+                            <p className="mt-1 text-gray-700">{profile.description}</p>
                           )}
                         </div>
-
                         <div>
                           <label className="block text-sm font-medium text-gray-500">Website</label>
                           {isEditing ? (
@@ -293,17 +266,16 @@ const CompanyDashboard = () => {
                             </div>
                           ) : (
                             <a
-                              href="https://techcorp.example.com"
+                              href={profile.website}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="mt-1 text-blue-600 hover:underline flex items-center"
                             >
                               <FiGlobe className="mr-1" />
-                              techcorp.example.com
+                              {new URL(profile.website).hostname}
                             </a>
                           )}
                         </div>
-
                         <div>
                           <label className="block text-sm font-medium text-gray-500">LinkedIn</label>
                           {isEditing ? (
@@ -322,24 +294,23 @@ const CompanyDashboard = () => {
                               )}
                             </div>
                           ) : (
-                            <a
-                              href="https://linkedin.com/company/techcorp"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="mt-1 text-blue-600 hover:underline flex items-center"
-                            >
-                              <FiLinkedin className="mr-1" />
-                              linkedin.com/company/techcorp
-                            </a>
+                            profile.linkedin && (
+                              <a
+                                href={profile.linkedin}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-1 text-blue-600 hover:underline flex items-center"
+                              >
+                                <FiLinkedin className="mr-1" />
+                                {new URL(profile.linkedin).pathname}
+                              </a>
+                            )
                           )}
                         </div>
                       </div>
                     </div>
-
-                    {/* Right Column */}
                     <div>
                       <h2 className="text-lg font-semibold mb-4">Contact Information</h2>
-
                       <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-500">Location</label>
@@ -360,11 +331,10 @@ const CompanyDashboard = () => {
                           ) : (
                             <p className="mt-1 text-gray-700 flex items-center">
                               <FiMapPin className="mr-1" />
-                              San Francisco, CA
+                              {profile.location}
                             </p>
                           )}
                         </div>
-
                         <div>
                           <label className="block text-sm font-medium text-gray-500">Company Size</label>
                           {isEditing ? (
@@ -383,11 +353,10 @@ const CompanyDashboard = () => {
                           ) : (
                             <p className="mt-1 text-gray-700 flex items-center">
                               <FiUsers className="mr-1" />
-                              51-200 employees
+                              {profile.companySize} employees
                             </p>
                           )}
                         </div>
-
                         <div>
                           <label className="block text-sm font-medium text-gray-500">Contact Email</label>
                           {isEditing ? (
@@ -406,15 +375,14 @@ const CompanyDashboard = () => {
                             </div>
                           ) : (
                             <a
-                              href="mailto:contact@techcorp.example.com"
+                              href={`mailto:${profile.email}`}
                               className="mt-1 text-blue-600 hover:underline flex items-center"
                             >
                               <FiMail className="mr-1" />
-                              contact@techcorp.example.com
+                              {profile.email}
                             </a>
                           )}
                         </div>
-
                         <div>
                           <label className="block text-sm font-medium text-gray-500">Phone Number</label>
                           {isEditing ? (
@@ -429,13 +397,15 @@ const CompanyDashboard = () => {
                               />
                             </div>
                           ) : (
-                            <a
-                              href="tel:+15551234567"
-                              className="mt-1 text-blue-600 hover:underline flex items-center"
-                            >
-                              <FiPhone className="mr-1" />
-                              +1 (555) 123-4567
-                            </a>
+                            profile.phone && (
+                              <a
+                                href={`tel:${profile.phone}`}
+                                className="mt-1 text-blue-600 hover:underline flex items-center"
+                              >
+                                <FiPhone className="mr-1" />
+                                {profile.phone}
+                              </a>
+                            )
                           )}
                         </div>
                       </div>
@@ -444,7 +414,6 @@ const CompanyDashboard = () => {
                 </div>
               </div>
             )}
-
             {activeTab === 'jobs' && (
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
@@ -458,7 +427,6 @@ const CompanyDashboard = () => {
                     </Link>
                   </div>
                 </div>
-
                 <div className="relative mb-6">
                   <input
                     type="text"
@@ -467,10 +435,9 @@ const CompanyDashboard = () => {
                   />
                   <FiSearch className="absolute left-3 top-3 text-gray-400" />
                 </div>
-
                 <div className="space-y-4">
                   {jobs.map(job => (
-                    <div key={job.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div key={job._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                         <div className="mb-4 md:mb-0">
                           <h3 className="font-bold text-lg">{job.title}</h3>
@@ -481,15 +448,24 @@ const CompanyDashboard = () => {
                             <span className="flex items-center text-gray-600">
                               <FiClock className="mr-1" /> Posted {job.posted}
                             </span>
+                            <span className="flex items-center text-gray-600">
+                              <FiMapPin className="mr-1" /> {job.workType}
+                            </span>
                           </div>
+                          <p className="text-sm text-gray-500 mt-1">{job.description.substring(0, 100)}...</p>
                         </div>
                         <div className="flex items-center space-x-3">
-                          <span className={`px-3 py-1 text-sm rounded-full ${job.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                            }`}>
+                          <span className={`px-3 py-1 text-sm rounded-full ${job.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
                             {job.status}
                           </span>
+                          <button
+                            onClick={() => setSelectedJob(job)}
+                            className="px-3 py-1 bg-blue-50 text-primary rounded-lg text-sm font-medium hover:bg-blue-100"
+                          >
+                            Edit
+                          </button>
                           <Link
-                            to={`/dashboard/jobs/${job.id}`}
+                            to={`/jobs/${job._id}`}
                             className="px-3 py-1 bg-blue-50 text-primary rounded-lg text-sm font-medium hover:bg-blue-100"
                           >
                             Manage
@@ -501,109 +477,9 @@ const CompanyDashboard = () => {
                 </div>
               </div>
             )}
-
-            {activeTab === 'candidates' && (
-              <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                <div className="p-6">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-                    <h2 className="text-xl font-bold">Candidate Pipeline</h2>
-                    <div className="mt-4 md:mt-0">
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder="Search candidates..."
-                          className="w-full md:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                        />
-                        <FiSearch className="absolute left-3 top-3 text-gray-400" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex overflow-x-auto mb-6">
-                    <button className="px-4 py-2 border-b-2 border-primary text-primary font-medium whitespace-nowrap">
-                      All Candidates
-                    </button>
-                    <button className="px-4 py-2 border-b-2 border-transparent text-gray-600 font-medium whitespace-nowrap hover:text-primary">
-                      New
-                    </button>
-                    <button className="px-4 py-2 border-b-2 border-transparent text-gray-600 font-medium whitespace-nowrap hover:text-primary">
-                      Screening
-                    </button>
-                    <button className="px-4 py-2 border-b-2 border-transparent text-gray-600 font-medium whitespace-nowrap hover:text-primary">
-                      Interview
-                    </button>
-                    <button className="px-4 py-2 border-b-2 border-transparent text-gray-600 font-medium whitespace-nowrap hover:text-primary">
-                      Offer
-                    </button>
-                    <button className="px-4 py-2 border-b-2 border-transparent text-gray-600 font-medium whitespace-nowrap hover:text-primary">
-                      Hired
-                    </button>
-                    <button className="px-4 py-2 border-b-2 border-transparent text-gray-600 font-medium whitespace-nowrap hover:text-primary">
-                      Rejected
-                    </button>
-                  </div>
-
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidate</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied For</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Match</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {applicants.map(applicant => (
-                          <tr key={applicant.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                  <span className="text-gray-600">{applicant.name.charAt(0)}</span>
-                                </div>
-                                <div className="ml-4">
-                                  <div className="font-medium">{applicant.name}</div>
-                                  <div className="text-sm text-gray-500">Applied {applicant.applied}</div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium">{applicant.job}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2 py-1 text-xs rounded-full ${applicant.status === 'New' ? 'bg-blue-100 text-blue-800' :
-                                  applicant.status === 'Interview' ? 'bg-purple-100 text-purple-800' :
-                                    'bg-red-100 text-red-800'
-                                }`}>
-                                {applicant.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                                  <div
-                                    className="bg-green-500 h-2 rounded-full"
-                                    style={{ width: applicant.match }}
-                                  ></div>
-                                </div>
-                                <span>{applicant.match}</span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <button className="text-primary hover:text-accent mr-3">View</button>
-                              <button className="text-gray-600 hover:text-gray-900">Message</button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
+            {selectedJob && (
+              <JobEditModal job={selectedJob} onClose={() => setSelectedJob(null)} />
             )}
-
-            {/* Add similar sections for analytics and settings tabs */}
           </div>
         </div>
       </div>

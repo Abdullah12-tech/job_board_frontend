@@ -15,7 +15,6 @@ import JobProvider from './context/jobContext';
 import ApplicationProvider from './context/applicationContext';
 import ApplyJob from './pages/applyJob';
 import CandidateDashboard from './pages/CandidateDashboard';
-import CompanyDashboard from './pages/CompanyDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import MainLayout from './layouts/MainLayout';
 import DashboardProtect from './components/DashboardProtect';
@@ -25,50 +24,54 @@ import ForgotPassword from './pages/ForgetPassword';
 import { Toaster } from 'sonner';
 import IsEmployer from './components/isEmployer';
 import IsCandidate from './components/IsCandidate';
+import CompanyDashboard from './pages/CompanyDashboard';
+import { DashboardProvider } from './context/CompanyContext';
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <JobProvider>
-          <ApplicationProvider>
-            <div className="flex flex-col min-h-screen">
-              <main className="flex-grow">
-                <Toaster position='top right' />
-                <Routes>
-                  <Route element={<MainLayout />}>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/jobs" element={<Jobs />} />
-                    <Route path="/jobs/:id" element={<JobDetails />} />
-                    <Route path="/companies" element={<Companies />} />
-                    <Route path="/companies/:id" element={<CompanyDetails />} />
-                    <Route path="/candidates" element={<Candidates />} />
-                    <Route element={<DashboardProtect />}>
-                      <Route element={<IsCandidate />}>
-                        <Route path="/dashboard/candidate" element={<CandidateDashboard />} />
-                      </Route>
+          <DashboardProvider>
+            <ApplicationProvider>
+              <div className="flex flex-col min-h-screen">
+                <main className="flex-grow">
+                  <Toaster position='top right' />
+                  <Routes>
+                    <Route element={<MainLayout />}>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/jobs" element={<Jobs />} />
+                      <Route path="/jobs/:id" element={<JobDetails />} />
+                      <Route path="/companies" element={<Companies />} />
+                      <Route path="/companies/:id" element={<CompanyDetails />} />
+                      <Route path="/candidates" element={<Candidates />} />
+                      <Route element={<DashboardProtect />}>
+                        <Route element={<IsCandidate />}>
+                          <Route path="/dashboard/candidate" element={<CandidateDashboard />} />
+                        </Route>
                         <Route path="/apply/:id" element={<ApplyJob />} />
-                      <Route element={<IsEmployer />}>
-                        <Route path="/dashboard/company/profile" element={<CompanyProfile />} />
-                        <Route path="/dashboard/company" element={<CompanyDashboard />} />
-                        <Route path="/post-job" element={<PostJob />} />
+                        <Route element={<IsEmployer />}>
+                          <Route path="/dashboard/company/profile" element={<CompanyProfile />} />
+                          <Route path="/dashboard/company" element={<CompanyDashboard />} />
+                          <Route path="/post-job" element={<PostJob />} />
+                        </Route>
                       </Route>
+                      <Route path="/verify-account/:token" element={<VerifyAccount />} />
+                      <Route path="/forgot-password" element={<ForgotPassword />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route element={<JobProtect />}>
+                      </Route>
+                      <Route path="/register" element={<Register />} />
+                      <Route path="*" element={<NotFound />} />
                     </Route>
-                    <Route path="/verify-account/:token" element={<VerifyAccount />} />
-                    <Route path="/forgot-password" element={<ForgotPassword />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route element={<JobProtect />}>
+                    <Route>
+                      <Route path='/dashboard/admin' element={<AdminDashboard />} />
                     </Route>
-                    <Route path="/register" element={<Register />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Route>
-                  <Route>
-                    <Route path='/dashboard/admin' element={<AdminDashboard />} />
-                  </Route>
-                </Routes>
-              </main>
-            </div>
-          </ApplicationProvider>
+                  </Routes>
+                </main>
+              </div>
+            </ApplicationProvider>
+          </DashboardProvider>
         </JobProvider>
       </AuthProvider>
     </BrowserRouter>
