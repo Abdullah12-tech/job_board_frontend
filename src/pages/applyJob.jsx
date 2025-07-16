@@ -51,7 +51,7 @@ const ApplyJob = () => {
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append('resume', data.resume[0]);
-    formData.append('coverLetterText', data.coverLetterText);
+    formData.append('coverLetter', data.coverLetterText);
     await applyJob(formData,id);
     setIsSubmitting(false);
   };
