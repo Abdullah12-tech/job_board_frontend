@@ -1,22 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiSearch, FiFilter, FiMapPin, FiBriefcase, FiAward } from 'react-icons/fi';
 
 const Candidates = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [candidates, setCandidates] = useState([
-    // Sample candidate data - replace with API call
-    {
-      id: 1,
-      name: 'John Doe',
-      title: 'Senior Frontend Developer',
-      location: 'San Francisco, CA',
-      skills: ['React', 'TypeScript', 'Node.js', 'GraphQL'],
-      experience: '5+ years',
-      education: 'Computer Science, Stanford University',
-      avatar: 'https://via.placeholder.com/80',
-    },
-    // Add more candidates
-  ]);
+  const [candidates, setCandidates] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchCandidates = async () => {
+      try {
+        const response = await fetch('/api/candidates');
+        if (!response.ok) throw new Error('Failed to fetch candidates');
+        const data = await response.json();
+        
+        // Transform API data to match our frontend structure
+        const formattedCandidates = data.data.map((item) => ({
+          id: item._id,
+          name: item.userId.name,
+          title: item.professionalTitle || 'Candidate',
+          location: item.location,
+          skills: item.skills || [],
+          experience: item.experience || 'Not specified',
+          education: item.education || 'Not specified',
+          avatar: item.profilePicture || 'https://via.placeholder.com/80'
+        }));
+        
+        setCandidates(formattedCandidates);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCandidates();
+  }, []);
 
   const filteredCandidates = candidates.filter(candidate =>
     candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -24,10 +43,12 @@ const Candidates = () => {
     candidate.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">Error: {error}</div>;
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
-        {/* Search and Filter Bar */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <h1 className="text-2xl font-bold mb-6">Find Candidates</h1>
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -48,7 +69,6 @@ const Candidates = () => {
           </div>
         </div>
 
-        {/* Candidates List */}
         <div className="grid grid-cols-1 gap-6">
           {filteredCandidates.length > 0 ? (
             filteredCandidates.map(candidate => (
@@ -99,8 +119,6 @@ const Candidates = () => {
             </div>
           )}
         </div>
-
-        {/* Pagination would go here */}
       </div>
     </div>
   );

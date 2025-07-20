@@ -25,14 +25,30 @@ const AuthProvider = ({ children }) => {
         }
     }
 
-    useEffect(() => {
-        if (token) {
-            const user = JSON.parse(atob(token.split(".")[1]));
-            setCurrentUser(user);
-            console.log(user);
-              
+    const fetchCurrentUser = useCallback( async ()=>{
+      if(!token) return;
+      try {
+        const res = await fetch(`${baseUrl}/auth/user`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        });
+        const data = await res.json();
+        if(!res.ok && data.message === "error"){
+          return console.log("User not found");
+        }else{
+          setCurrentUser(data);
         }
-    }, [token])
+      } catch (err) {
+        console.log(err);
+      }
+    }, [])
+
+    const logout = ()=>{
+      localStorage.removeItem("accessToken")
+      setCurrentUser(null);
+    }
     const signup = async (formData) => {
         setIsSigning(true)
         try {
@@ -193,6 +209,9 @@ const AuthProvider = ({ children }) => {
         } catch (err) {
             console.log(err);
             toast.warning(err.message)
+            if(err.message === "Failed to fetch"){
+              toast.error("Please check your internet connection")
+            }
         } finally {
             setIsSigning(false)
             setIsSubmitted(false)
@@ -213,7 +232,9 @@ const AuthProvider = ({ children }) => {
             }
             toast.success("Password have been changed")
         } catch (err) {
-
+          if(err.message === "Failed to fetch"){
+              toast.error("Please check your internet connection")
+            }
         } finally {
             setIsSigning(false)
         }
@@ -238,7 +259,7 @@ const AuthProvider = ({ children }) => {
             console.log(data);
             localStorage.setItem("accessToken", data.accessToken)
             toast.success("You have successfully loggedin")
-            if (data.user.role === "employer") {
+            if (data?.user?.role === "employer") {
                 navigate("/dashboard/company")
             } else {
                 navigate("/dashboard/candidate")
@@ -246,6 +267,9 @@ const AuthProvider = ({ children }) => {
         } catch (err) {
             console.log(err);
             toast.warning(err.message);
+            if(err.message === "Failed to fetch"){
+              toast.error("Please check your internet connection")
+            }
         } finally {
             setIsSigning(false)
         }
@@ -267,6 +291,9 @@ const AuthProvider = ({ children }) => {
             console.log(err);
             setStatus("error")
             setVerifyMessage(err)
+            if(err.message === "Failed to fetch"){
+              toast.error("Please check your internet connection")
+            }
         }
     }
 
@@ -285,8 +312,12 @@ const AuthProvider = ({ children }) => {
         status,
         isSubmitted,
         user,
+        loading,
         fetchCandidateProfile,
-        updateCandidateProfile
+        updateCandidateProfile,
+        fetchCurrentUser,
+        logout,
+        setCurrentUser
     }
     return (
         <authContext.Provider value={value}>

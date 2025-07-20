@@ -7,12 +7,17 @@ import { authContext } from '../context/AuthContext';
 const Header = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const token = localStorage.getItem("accessToken");
-  const {currentUser} = useContext(authContext);
-  const handleLogout = ()=>{
-    localStorage.removeItem("accessToken")
+  const { currentUser, isAuthenticated, setCurrentUser, fetchCurrentUser, logout } = useContext(authContext);
+
+  useEffect(() => {
+    if (token) {
+      fetchCurrentUser();
+    }
+  }, [fetchCurrentUser]);
+
+  const handleLogout = () => {
+    logout()
   }
-
-
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
@@ -53,13 +58,14 @@ const Header = () => {
           </nav>
 
           {/* Auth Buttons */}
-          {currentUser ? (
+          {isAuthenticated && currentUser ? (
             <div className="flex items-center space-x-4">
 
               <Menu as="div" className="relative">
                 <Menu.Button className="flex items-center space-x-2 focus:outline-none">
                   <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center">
-                    {currentUser?.name}
+                    {currentUser?.name?.charAt(0).toUpperCase()}
+
                   </div>
                 </Menu.Button>
                 <Transition
@@ -73,7 +79,7 @@ const Header = () => {
                   <Menu.Items className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                     <Menu.Item>
                       {({ active }) => (
-                        <Link to="/dashboard/candidate" className={`block px-4 py-2 text-sm ${active ? 'bg-gray-100' : 'text-gray-700'}`}>
+                        <Link to={currentUser?.role === "employer" ? "/dashboard/company" : "/dashboard/candidate"}>
                           Dashboard
                         </Link>
                       )}

@@ -1,22 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiSearch, FiFilter } from 'react-icons/fi';
 import CompanyCard from '../components/CompanyCard';
 
 const Companies = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [companies, setCompanies] = useState([
-    // Sample company data - replace with API call
-    {
-      id: 1,
-      name: 'TechCorp',
-      logo: 'https://via.placeholder.com/80',
-      jobs: 12,
-      location: 'San Francisco, CA',
-      industry: 'Software Development',
-      description: 'Building innovative software solutions for modern businesses.',
-    },
-    // Add more companies
-  ]);
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const response = await fetch('/api/employers');
+        if (!response.ok) throw new Error('Failed to fetch companies');
+        const data = await response.json();
+        
+        // Transform API data to match our frontend structure
+        const formattedCompanies = data.data.map((item) => ({
+          id: item.employer._id,
+          name: item.employer.userId.name,
+          logo: item.employer.companyLogo || 'https://via.placeholder.com/80',
+          jobs: item.jobs.length,
+          location: item.employer.companyLocation,
+          industry: item.employer.industry,
+          description: item.employer.companyDescription
+        }));
+        
+        setCompanies(formattedCompanies);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCompanies();
+  }, []);
 
   const filteredCompanies = companies.filter(company =>
     company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -24,10 +43,12 @@ const Companies = () => {
     company.industry.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">Error: {error}</div>;
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
-        {/* Search and Filter Bar */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <h1 className="text-2xl font-bold mb-6">Find Companies</h1>
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -48,7 +69,6 @@ const Companies = () => {
           </div>
         </div>
 
-        {/* Companies List */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCompanies.length > 0 ? (
             filteredCompanies.map(company => (
@@ -60,8 +80,6 @@ const Companies = () => {
             </div>
           )}
         </div>
-
-        {/* Pagination would go here */}
       </div>
     </div>
   );
