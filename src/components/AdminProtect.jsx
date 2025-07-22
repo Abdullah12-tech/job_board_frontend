@@ -6,10 +6,10 @@ const AdminProtect = ()=>{
     const {currentUser } = useContext(authContext);
     const navigate = useNavigate();
     useEffect(()=>{
-        if(currentUser?.role !== "admin"){
+        if(currentUser?.role !== "employer"){
             navigate("/")
         }
     },[currentUser, navigate])
-    return currentUser?.role === "admin" ? <Outlet/> : null 
+    return currentUser?.role === "employer" ? <Outlet/> : null 
 }
 export default AdminProtect;

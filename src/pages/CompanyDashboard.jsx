@@ -1,11 +1,9 @@
 import { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  FiBriefcase, FiUsers, FiDollarSign, FiBarChart2,
-  FiSettings, FiBell, FiMessageSquare, FiBookmark,
-  FiCalendar, FiCheckCircle, FiClock, FiSearch,
-  FiX, FiUser, FiEdit2, FiGlobe, FiLinkedin,
-  FiMapPin, FiMail, FiPhone, FiSave
+  FiBriefcase, FiUsers, FiClock, FiSearch,
+  FiMapPin, FiMail, FiPhone, FiEdit2, FiSave,
+  FiUser, FiGlobe, FiLinkedin, FiX
 } from 'react-icons/fi';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -25,24 +23,45 @@ const profileSchema = yup.object({
   location: yup.string().required('Location is required'),
   phone: yup.string().nullable(),
   email: yup.string().email('Enter a valid email').required('Email is required'),
-  companyLogoUrl: yup.string().nullable(),
 });
 
 const CompanyDashboard = () => {
   const { jobs, profile, updateProfile, isLoading } = useContext(DashboardContext);
   const { isAuthenticated } = useContext(authContext);
-   const [activeTab, setActiveTab] = useState('profile');
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
-  const [logo, setLogo] = useState(null);
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+
+  const companySizeOptions = [
+    { value: '', label: 'Select company size' },
+    { value: '1-10', label: '1-10 employees' },
+    { value: '11-50', label: '11-50 employees' },
+    { value: '51-200', label: '51-200 employees' },
+    { value: '201-500', label: '201-500 employees' },
+    { value: '501-1000', label: '501-1000 employees' },
+    { value: '1000+', label: '1000+ employees' },
+  ];
   useEffect(() => {
     if (!isAuthenticated()) {
       toast.warning('Please log in to access the dashboard');
       navigate('/login');
     }
   }, [isAuthenticated, navigate]);
+
+  // Initialize form and logo preview
+  useEffect(() => {
+    if (profile) {
+      reset(profile);
+      if (profile.companyLogoUrl) {
+        setLogoPreview(profile.companyLogoUrl);
+      }
+    }
+  }, [profile]);
 
   const {
     register,
@@ -61,21 +80,35 @@ const CompanyDashboard = () => {
       location: '',
       phone: '',
       email: '',
-      companyLogoUrl: '',
     },
   });
 
   const onSubmit = async (data) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     try {
-      await updateProfile({
-        ...data,
-        companyLogoUrl: logo || data.companyLogoUrl,
+      const formData = new FormData();
+
+      // Append all form fields
+      Object.keys(data).forEach(key => {
+        formData.append(key, data[key]);
       });
+
+      // Append the logo file if it's a new one
+      if (logoFile) {
+        formData.append('companyLogo', logoFile);
+      }
+
+      await updateProfile(formData);
       toast.success('Profile updated successfully');
       setIsEditing(false);
+      setLogoFile(null); // Reset file after successful upload
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error(error.message || 'Failed to update profile');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -84,20 +117,39 @@ const CompanyDashboard = () => {
   };
 
   const handleCancelClick = () => {
-    reset();
+    reset(profile);
     setIsEditing(false);
-    setLogo(null);
+    setLogoFile(null);
+    setLogoPreview(profile?.companyLogoUrl || '');
   };
 
   const handleLogoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Validate file type and size
+      if (!file.type.match('image.*')) {
+        toast.error('Please select an image file');
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) { // 2MB
+        toast.error('Image size should be less than 2MB');
+        return;
+      }
+
+      setLogoFile(file);
+
+      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
-        setLogo(reader.result);
+        setLogoPreview(reader.result);
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const removeLogo = () => {
+    setLogoFile(null);
+    setLogoPreview('');
   };
 
   return (
@@ -138,16 +190,27 @@ const CompanyDashboard = () => {
           <div className="flex-1">
             {activeTab === 'profile' && profile && (
               <div className="bg-white rounded-lg shadow overflow-hidden">
+                {/* Header */}
                 <div className="bg-blue-600 px-6 py-8 text-white">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <div className="relative">
-                        {logo || profile.companyLogoUrl ? (
-                          <img
-                            src={logo || profile.companyLogoUrl}
-                            alt="Company logo"
-                            className="w-16 h-16 rounded-full object-cover border-4 border-white"
-                          />
+                        {logoPreview ? (
+                          <div className="relative">
+                            <img
+                              src={logoPreview}
+                              alt="Company logo"
+                              className="w-16 h-16 rounded-full object-cover border-4 border-white"
+                            />
+                            {isEditing && (
+                              <button
+                                onClick={removeLogo}
+                                className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 shadow hover:bg-red-600"
+                              >
+                                <FiX className="h-3 w-3 text-white" />
+                              </button>
+                            )}
+                          </div>
                         ) : (
                           <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center text-2xl font-bold">
                             {profile.companyName?.charAt(0) || 'C'}
@@ -196,10 +259,10 @@ const CompanyDashboard = () => {
                         </button>
                         <button
                           onClick={handleSubmit(onSubmit)}
-                          disabled={isLoading}
+                          disabled={isSubmitting}
                           className="px-4 py-2 bg-white text-blue-600 rounded hover:bg-gray-100 flex items-center"
                         >
-                          {isLoading ? (
+                          {isSubmitting ? (
                             <>
                               <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -226,194 +289,174 @@ const CompanyDashboard = () => {
                     )}
                   </div>
                 </div>
+
+                {/* Profile details */}
                 <div className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h2 className="text-lg font-semibold mb-4">Company Information</h2>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-500">Description</label>
-                          {isEditing ? (
-                            <>
-                              <textarea
-                                {...register('description')}
-                                rows={4}
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                              />
-                              {errors.description && (
-                                <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
-                              )}
-                            </>
-                          ) : (
-                            <p className="mt-1 text-gray-700">{profile.description}</p>
-                          )}
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-500">Website</label>
-                          {isEditing ? (
-                            <div className="mt-1 relative">
-                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <FiGlobe className="h-5 w-5 text-gray-400" />
-                              </div>
-                              <input
-                                {...register('website')}
-                                type="url"
-                                className="pl-10 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                              />
-                              {errors.website && (
-                                <p className="mt-1 text-sm text-red-600">{errors.website.message}</p>
-                              )}
-                            </div>
-                          ) : (
-                            <a
-                              href={profile.website}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="mt-1 text-blue-600 hover:underline flex items-center"
-                            >
-                              <FiGlobe className="mr-1" />
-                              {new URL(profile.website).hostname}
+                    {/* Company Info */}
+                    <div className="space-y-4">
+                      <h3 className="font-bold text-lg">Company Information</h3>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                        {isEditing ? (
+                          <>
+                            <input
+                              {...register('website')}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                              placeholder="https://example.com"
+                            />
+                            {errors.website && (
+                              <p className="mt-1 text-sm text-red-600">{errors.website.message}</p>
+                            )}
+                          </>
+                        ) : (
+                          <div className="flex items-center text-gray-800">
+                            <FiGlobe className="mr-2" />
+                            <a href={profile.website} target="_blank" rel="noopener noreferrer" className="hover:text-primary">
+                              {profile.website}
                             </a>
-                          )}
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-500">LinkedIn</label>
-                          {isEditing ? (
-                            <div className="mt-1 relative">
-                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <FiLinkedin className="h-5 w-5 text-gray-400" />
-                              </div>
-                              <input
-                                {...register('linkedin')}
-                                type="url"
-                                className="pl-10 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                                placeholder="https://linkedin.com/company/yourcompany"
-                              />
-                              {errors.linkedin && (
-                                <p className="mt-1 text-sm text-red-600">{errors.linkedin.message}</p>
-                              )}
-                            </div>
-                          ) : (
-                            profile.linkedin && (
-                              <a
-                                href={profile.linkedin}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="mt-1 text-blue-600 hover:underline flex items-center"
-                              >
-                                <FiLinkedin className="mr-1" />
-                                {new URL(profile.linkedin).pathname}
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn</label>
+                        {isEditing ? (
+                          <>
+                            <input
+                              {...register('linkedin')}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                              placeholder="https://linkedin.com/company/example"
+                            />
+                            {errors.linkedin && (
+                              <p className="mt-1 text-sm text-red-600">{errors.linkedin.message}</p>
+                            )}
+                          </>
+                        ) : (
+                          <div className="flex items-center text-gray-800">
+                            <FiLinkedin className="mr-2" />
+                            {profile.linkedin ? (
+                              <a href={profile.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-primary">
+                                {profile.linkedin}
                               </a>
-                            )
-                          )}
-                        </div>
+                            ) : (
+                              <span>Not provided</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        {isEditing ? (
+                          <>
+                            <textarea
+                              {...register('description')}
+                              rows={4}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            />
+                            {errors.description && (
+                              <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-gray-800">{profile.description}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Company Size</label>
+                        {isEditing ? (
+                          <select
+                            {...register('companySize')}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                          >
+                            {companySizeOptions.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <p className="text-gray-800">
+                            {companySizeOptions.find(opt => opt.value === profile.companySize)?.label || 'Not specified'}
+                          </p>
+                        )}
                       </div>
                     </div>
-                    <div>
-                      <h2 className="text-lg font-semibold mb-4">Contact Information</h2>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-500">Location</label>
-                          {isEditing ? (
-                            <div className="mt-1 relative">
-                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <FiMapPin className="h-5 w-5 text-gray-400" />
-                              </div>
-                              <input
-                                {...register('location')}
-                                type="text"
-                                className="pl-10 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                              />
-                              {errors.location && (
-                                <p className="mt-1 text-sm text-red-600">{errors.location.message}</p>
-                              )}
-                            </div>
-                          ) : (
-                            <p className="mt-1 text-gray-700 flex items-center">
-                              <FiMapPin className="mr-1" />
-                              {profile.location}
-                            </p>
-                          )}
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-500">Company Size</label>
-                          {isEditing ? (
-                            <select
-                              {...register('companySize')}
-                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                            >
-                              <option value="">Select company size</option>
-                              <option value="1-10">1-10 employees</option>
-                              <option value="11-50">11-50 employees</option>
-                              <option value="51-200">51-200 employees</option>
-                              <option value="201-500">201-500 employees</option>
-                              <option value="501-1000">501-1000 employees</option>
-                              <option value="1001+">1001+ employees</option>
-                            </select>
-                          ) : (
-                            <p className="mt-1 text-gray-700 flex items-center">
-                              <FiUsers className="mr-1" />
-                              {profile.companySize} employees
-                            </p>
-                          )}
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-500">Contact Email</label>
-                          {isEditing ? (
-                            <div className="mt-1 relative">
-                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <FiMail className="h-5 w-5 text-gray-400" />
-                              </div>
-                              <input
-                                {...register('email')}
-                                type="email"
-                                className="pl-10 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                              />
-                              {errors.email && (
-                                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
-                              )}
-                            </div>
-                          ) : (
-                            <a
-                              href={`mailto:${profile.email}`}
-                              className="mt-1 text-blue-600 hover:underline flex items-center"
-                            >
-                              <FiMail className="mr-1" />
-                              {profile.email}
-                            </a>
-                          )}
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-500">Phone Number</label>
-                          {isEditing ? (
-                            <div className="mt-1 relative">
-                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <FiPhone className="h-5 w-5 text-gray-400" />
-                              </div>
-                              <input
-                                {...register('phone')}
-                                type="tel"
-                                className="pl-10 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                              />
-                            </div>
-                          ) : (
-                            profile.phone && (
-                              <a
-                                href={`tel:${profile.phone}`}
-                                className="mt-1 text-blue-600 hover:underline flex items-center"
-                              >
-                                <FiPhone className="mr-1" />
-                                {profile.phone}
-                              </a>
-                            )
-                          )}
-                        </div>
+
+                    {/* Contact Info */}
+                    <div className="space-y-4">
+                      <h3 className="font-bold text-lg">Contact Information</h3>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                        {isEditing ? (
+                          <>
+                            <input
+                              {...register('location')}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            />
+                            {errors.location && (
+                              <p className="mt-1 text-sm text-red-600">{errors.location.message}</p>
+                            )}
+                          </>
+                        ) : (
+                          <div className="flex items-center text-gray-800">
+                            <FiMapPin className="mr-2" />
+                            <span>{profile.location}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        {isEditing ? (
+                          <>
+                            <input
+                              {...register('email')}
+                              type="email"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            />
+                            {errors.email && (
+                              <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                            )}
+                          </>
+                        ) : (
+                          <div className="flex items-center text-gray-800">
+                            <FiMail className="mr-2" />
+                            <span>{profile.email}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                        {isEditing ? (
+                          <>
+                            <input
+                              {...register('phone')}
+                              type="tel"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            />
+                            {errors.phone && (
+                              <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+                            )}
+                          </>
+                        ) : (
+                          <div className="flex items-center text-gray-800">
+                            <FiPhone className="mr-2" />
+                            <span>{profile.phone || 'Not provided'}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             )}
+
             {activeTab === 'jobs' && (
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
@@ -477,6 +520,7 @@ const CompanyDashboard = () => {
                 </div>
               </div>
             )}
+
             {selectedJob && (
               <JobEditModal job={selectedJob} onClose={() => setSelectedJob(null)} />
             )}

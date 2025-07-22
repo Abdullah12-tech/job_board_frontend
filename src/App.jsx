@@ -58,7 +58,7 @@ function App() {
                         <Route path="/register" element={<Register />} />
                         <Route path="/verify-account/:token" element={<VerifyAccount />} />
                         <Route path="/forgot-password" element={<ForgotPassword />} />
-                        <Route path="/reset-password" element={<ResetPassword />} />
+                        <Route path="/reset-password/:token" element={<ResetPassword />} />
                       </Route>
 
                       {/* Protected dashboard routes */}

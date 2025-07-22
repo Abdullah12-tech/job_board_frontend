@@ -219,26 +219,35 @@ const AuthProvider = ({ children }) => {
     }
 
 
-    const verifyAndChangePass = async (formData, token) => {
-        setIsSigning(true)
-        try {
-            const res = await fetch(`${baseUrl}auth/verifyPass/${token}`, {
-                method: "POST",
-                body: JSON.stringify(formData)
-            })
-            const data = res.json()
-            if (!res.ok && data.status === "error") {
-                toast.warning(data.message)
-            }
-            toast.success("Password have been changed")
-        } catch (err) {
-          if(err.message === "Failed to fetch"){
-              toast.error("Please check your internet connection")
-            }
-        } finally {
-            setIsSigning(false)
+   const verifyAndChangePass = async (formData, token) => {
+    setIsSigning(true);
+    try {
+        const res = await fetch(`${baseUrl}/auth/verifyPass/${token}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await res.json(); // <-- await is necessary
+
+        if (!res.ok && data.status === "error") {
+            throw new Error(data.message);
         }
+
+        toast.success("Password has been changed");
+        navigate("/login")
+    } catch (err) {
+        toast.warning(err.message);
+        if (err.message === "Failed to fetch") {
+            toast.error("Please check your internet connection");
+        }
+    } finally {
+        setIsSigning(false);
     }
+};
+
 
 
 
