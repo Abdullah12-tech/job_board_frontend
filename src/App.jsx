@@ -14,7 +14,6 @@ import JobProvider from './context/jobContext';
 import ApplicationProvider from './context/applicationContext';
 import ApplyJob from './pages/applyJob';
 import CandidateDashboard from './pages/CandidateDashboard';
-import AdminDashboard from './pages/AdminDashboard';
 import MainLayout from './layouts/MainLayout';
 import DashboardProtect from './components/DashboardProtect';
 import CompanyProfile from './pages/CompanyProfile';
@@ -26,13 +25,18 @@ import IsCandidate from './components/IsCandidate';
 import CompanyDashboard from './pages/CompanyDashboard';
 import { DashboardProvider } from './context/CompanyContext';
 import ResetPassword from './pages/ResetPassword';
-import AdminLayout from './layouts/AdminDashboard';
-import Dashboard from './pages/Admin/Dashboard';
-import Settings from './pages/Admin/Setting';
-import AdminJobs from './pages/Admin/Jobs';
-import Users from './pages/Admin/User';
 import AdminProvider from './context/AdminContext';
-import AdminProtect from './components/AdminProtect';
+import IsAdmin from './components/IsAdmin';
+import CanPostJob from './components/CanPostJob';
+import AdminDashboard from './layouts/AdminDashboard';
+import DashboardOverview from './pages/Admin/DashboardPage';
+import UsersManagement from './pages/Admin/User';
+import JobsManagement from './pages/Admin/Jobs';
+import CompaniesManagement from './pages/Admin/Company';
+import AnalyticsPage from './pages/Admin/Analytics';
+import SettingsPage from './pages/Admin/Setting';
+import ResendVerification from './pages/ResendVerificationMail';
+import VerifyEmailSent from './pages/VerifyEmailSent';
 
 function App() {
   return (
@@ -59,31 +63,37 @@ function App() {
                         <Route path="/verify-account/:token" element={<VerifyAccount />} />
                         <Route path="/forgot-password" element={<ForgotPassword />} />
                         <Route path="/reset-password/:token" element={<ResetPassword />} />
+                        <Route path="/resend-verification" element={<ResendVerification />} />
+                        <Route path="/verify-email-sent" element={<VerifyEmailSent />} />
+                        <Route element={<DashboardProtect />}>
+                          <Route element={<IsCandidate />}>
+                            <Route path="/dashboard/candidate" element={<CandidateDashboard />} />
+                          </Route>
+                          <Route path="/apply/:id" element={<ApplyJob />} />
+                          <Route element={<IsEmployer />}>
+                            <Route path="/dashboard/company/profile" element={<CompanyProfile />} />
+                            <Route path="/dashboard/company" element={<CompanyDashboard />} />
+                          </Route>
+                          <Route element={<CanPostJob />}>
+                            <Route path="/post-job" element={<PostJob />} />
+                          </Route>
+                        </Route>
                       </Route>
 
                       {/* Protected dashboard routes */}
-                      <Route element={<DashboardProtect />}>
-                        <Route element={<IsCandidate />}>
-                          <Route path="/dashboard/candidate" element={<CandidateDashboard />} />
-                        </Route>
-                        <Route path="/apply/:id" element={<ApplyJob />} />
-                        <Route element={<IsEmployer />}>
-                          <Route path="/dashboard/company/profile" element={<CompanyProfile />} />
-                          <Route path="/dashboard/company" element={<CompanyDashboard />} />
-                          <Route path="/post-job" element={<PostJob />} />
-                        </Route>
-                      </Route>
 
                       {/* Admin routes with AdminLayout and protection */}
-                      <Route element={<AdminProtect />}>
-                        <Route path="/admin" element={<AdminLayout />}>
-                          <Route index element={<Dashboard />} />
-                          <Route path="dashboard" element={<Dashboard />} />
-                          <Route path="users" element={<Users />} />
-                          <Route path="jobs" element={<AdminJobs />} />
-                          <Route path="settings" element={<Settings />} />
+                      <Route element={<DashboardProtect />}>
+                        <Route element={<IsAdmin />}>
+                          <Route path="/admin" element={<AdminDashboard />}>
+                            <Route index element={<DashboardOverview />} />
+                            <Route path="users" element={<UsersManagement />} />
+                            <Route path="jobs" element={<JobsManagement />} />
+                            <Route path="companies" element={<CompaniesManagement />} />
+                            <Route path="analytics" element={<AnalyticsPage />} />
+                            <Route path="settings" element={<SettingsPage />} />
+                          </Route>
                         </Route>
-                        <Route path="/dashboard/admin" element={<AdminDashboard />} />
                       </Route>
 
                       {/* 404 route - must be last */}

@@ -6,38 +6,7 @@ const CompanyDetails = () => {
   const { id } = useParams();
   
   // In a real app, this would come from an API call
-  const company = {
-    id: 1,
-    name: 'TechCorp',
-    logo: 'https://via.placeholder.com/150',
-    coverImage: 'https://via.placeholder.com/1200x300',
-    about: 'TechCorp is a leading software development company specializing in innovative web and mobile solutions. We help businesses transform their ideas into reality through cutting-edge technology.',
-    website: 'https://techcorp.com',
-    size: '201-500 employees',
-    founded: 2010,
-    locations: ['San Francisco, CA', 'New York, NY', 'Remote'],
-    industry: 'Software Development',
-    jobs: [
-      {
-        id: 1,
-        title: 'Senior Frontend Developer',
-        location: 'San Francisco, CA or Remote',
-        salary: '$120,000 - $150,000',
-        type: 'Full-time',
-        posted: '2 days ago',
-      },
-      // Add more jobs
-    ],
-    benefits: [
-      'Competitive salary and equity',
-      'Health, dental, and vision insurance',
-      '401(k) matching',
-      'Flexible work hours',
-      'Remote work options',
-      'Professional development budget'
-    ],
-    techStack: ['React', 'Node.js', 'TypeScript', 'AWS', 'Docker', 'Kubernetes'],
-  };
+  const {} = {  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -74,14 +43,14 @@ const CompanyDetails = () => {
           <div className="lg:col-span-2">
             {/* About Section */}
             <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <h2 className="text-xl font-bold mb-4">About {company.name}</h2>
-              <p className="text-gray-700 mb-6">{company.about}</p>
+              <h2 className="text-xl font-bold mb-4">About {company?.name}</h2>
+              <p className="text-gray-700 mb-6">{company?.about}</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <h3 className="font-bold mb-2">Tech Stack</h3>
                   <div className="flex flex-wrap gap-2">
-                    {company.techStack.map((tech, index) => (
+                    {company?.techStack.map((tech, index) => (
                       <span key={index} className="bg-blue-100 text-primary px-3 py-1 rounded-full text-sm">
                         {tech}
                       </span>
@@ -109,7 +78,7 @@ const CompanyDetails = () => {
                     <div className="flex items-start text-gray-600">
                       <FiMapPin className="mr-3 mt-1" />
                       <div>
-                        {company.locations.map((loc, idx) => (
+                        {company?.location.map((loc, idx) => (
                           <div key={idx}>{loc}</div>
                         ))}
                       </div>

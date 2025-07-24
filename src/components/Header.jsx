@@ -79,7 +79,13 @@ const Header = () => {
                   <Menu.Items className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                     <Menu.Item>
                       {({ active }) => (
-                        <Link to={currentUser?.role === "employer" ? "/dashboard/company" : "/dashboard/candidate"}>
+                        <Link to={
+                          currentUser?.role === "admin"
+                            ? "/admin"
+                            : currentUser?.role === "employer"
+                              ? "/dashboard/company"
+                              : "/dashboard/candidate"
+                        }>
                           Dashboard
                         </Link>
                       )}
