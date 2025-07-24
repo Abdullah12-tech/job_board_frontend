@@ -7,11 +7,12 @@ const Companies = () => {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const baseUrl = import.meta.env.VITE_BASE_URL;
 
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        const response = await fetch('/api/employers');
+        const response = await fetch(`${baseUrl}/users/employers`);
         if (!response.ok) throw new Error('Failed to fetch companies');
         const data = await response.json();
         
@@ -72,7 +73,7 @@ const Companies = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCompanies.length > 0 ? (
             filteredCompanies.map(company => (
-              <CompanyCard key={company.id} company={company} />
+              <CompanyCard key={company._id} company={company} />
             ))
           ) : (
             <div className="col-span-full bg-white p-8 rounded-lg shadow-sm text-center">

@@ -6,11 +6,12 @@ const Candidates = () => {
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const baseUrl = import.meta.env.VITE_BASE_URL;
 
   useEffect(() => {
     const fetchCandidates = async () => {
       try {
-        const response = await fetch('/api/candidates');
+        const response = await fetch(`${baseUrl}/users/candidates`);
         if (!response.ok) throw new Error('Failed to fetch candidates');
         const data = await response.json();
         
@@ -44,7 +45,14 @@ const Candidates = () => {
   );
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">Error: {error}</div>;
+  if (error) return <div className="min-h-screen flex items-center justify-center">
+    <div className='w-64 m-auto p-6 shadow-md'>
+        <h1 className='text-3xl text-center'>
+          Something went wrong
+        </h1>
+        <a href="" className='text-red-500 text-xl text-center inline-block p-2 bg-blue-700'><span>retry</span></a>
+    </div>
+  </div>;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
