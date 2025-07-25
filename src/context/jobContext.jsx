@@ -1,4 +1,5 @@
 import { createContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 export const jobContext = createContext();
@@ -11,6 +12,7 @@ const JobProvider = ({ children }) => {
     const [singleJob, setSingleJob] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const token = localStorage.getItem("accessToken");
+    const navigate = useNavigate();
 
     const fetchAllJobs = async () => {
         setIsLoading(true);
@@ -42,6 +44,7 @@ const JobProvider = ({ children }) => {
                 return;
             }
             alert("Job posted successfully!");
+            navigate("/dashboard/candidate")
         } catch (err) {
             console.error("Error posting job:", err);
         } finally {

@@ -1,51 +1,63 @@
-import { useState, useEffect } from 'react';
-import { FiSearch, FiFilter } from 'react-icons/fi';
-import CompanyCard from '../components/CompanyCard';
+import { useEffect, useState } from "react";
+import { FiFilter, FiSearch } from "react-icons/fi";
+import CompanyCard from "../components/PublicCompanyCard";
 
 const Companies = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
   const baseUrl = import.meta.env.VITE_BASE_URL;
 
-  useEffect(() => {
-    const fetchCompanies = async () => {
-      try {
-        const response = await fetch(`${baseUrl}/users/employers`);
-        if (!response.ok) throw new Error('Failed to fetch companies');
-        const data = await response.json();
-        
-        // Transform API data to match our frontend structure
-        const formattedCompanies = data.data.map((item) => ({
-          id: item.employer._id,
-          name: item.employer.userId.name,
-          logo: item.employer.companyLogo || 'https://via.placeholder.com/80',
-          jobs: item.jobs.length,
-          location: item.employer.companyLocation,
-          industry: item.employer.industry,
-          description: item.employer.companyDescription
-        }));
-        
-        setCompanies(formattedCompanies);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchCompanies = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${baseUrl}/users/employers`);
+      if (!response.ok) throw new Error('Failed to fetch companies');
+      const { data } = await response.json();
+      setCompanies(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchCompanies();
   }, []);
 
-  const filteredCompanies = companies.filter(company =>
-    company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    company.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    company.industry.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCompanies = companies.filter(company => {
+    const term = searchTerm.toLowerCase();
+    return (
+      company?.name?.toLowerCase().includes(term) ||
+      company?.location?.toLowerCase().includes(term) ||
+      company?.industry?.toLowerCase().includes(term)
+    );
+  });
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">Error: {error}</div>;
+  if (loading && companies.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center flex-col gap-4">
+        <p className="text-red-500">Error: {error}</p>
+        <button 
+          onClick={fetchCompanies}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -69,6 +81,10 @@ const Companies = () => {
             </button>
           </div>
         </div>
+
+        {loading && companies.length > 0 && (
+          <div className="mb-4 text-center">Loading more companies...</div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCompanies.length > 0 ? (

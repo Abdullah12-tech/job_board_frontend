@@ -83,7 +83,7 @@ const AuthProvider = ({ children }) => {
       const token = localStorage.getItem("accessToken");
       if (!token) throw new Error("No authentication token found");
 
-      const res = await fetch(`${baseUrl}/candidates/`, {
+      const res = await fetch(`${baseUrl}/candidates`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -251,40 +251,40 @@ const AuthProvider = ({ children }) => {
 
 
 
-  const signin = async (formData) => {
-    setIsSigning(true)
+const signin = async (formData) => {
+    setIsSigning(true);
     try {
-      const res = await fetch(`${baseUrl}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(formData)
-      })
-      const data = await res.json()
-      if (!res.ok || data.status === "error") {
-        throw new Error(data.message);
-      }
-      console.log(data);
-      localStorage.setItem("accessToken", data.accessToken)
-      toast.success("You have successfully loggedin")
-      if (data?.user?.role === "employer") {
-        navigate("/dashboard/company")
-      } else if (data?.user?.role === "candidate") {
-        navigate("/dashboard/candidate")
-      } else {
-        navigate("/admin")
-      }
+        const res = await fetch(`${baseUrl}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await res.json();
+        
+        if (!res.ok) {
+            // Handle specific error messages from backend
+            throw new Error(data.message || "Login failed");
+        }
+
+        localStorage.setItem("accessToken", data.accessToken);
+        toast.success("Login successful");
+        
+        // Handle navigation
+        const role = data.user?.role;
+        navigate(role === "employer" ? "/dashboard/company" : 
+                role === "candidate" ? "/dashboard/candidate" : 
+                "/admin");
+                
     } catch (err) {
-      console.log(err);
-      toast.warning(err.message);
-      if (err.message === "Failed to fetch") {
-        toast.error("Please check your internet connection")
-      }
+        // Show more specific error messages
+        toast.error(err.message.includes("not properly set up") ? 
+            "Please reset your password" : 
+            err.message);
     } finally {
-      setIsSigning(false)
+        setIsSigning(false);
     }
-  }
+};
 
   const verifyEmail = async (token) => {
     setStatus("verifying");
