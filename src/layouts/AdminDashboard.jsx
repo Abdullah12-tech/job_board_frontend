@@ -6,7 +6,7 @@ import {
   FiCheckCircle, FiXCircle, FiAlertCircle, FiSearch,
   FiDollarSign, FiMessageSquare, FiBell, FiPieChart
 } from 'react-icons/fi';
-import AdminSidebar from '../components/admin/AdminSidebar';
+import AdminSidebar from '../components/Admin/AdminSidebar';
 import AdminHeader from '../components/Admin/AdminHeader';
 
 const AdminDashboard = () => {
