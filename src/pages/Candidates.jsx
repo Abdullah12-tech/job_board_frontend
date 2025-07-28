@@ -108,7 +108,9 @@ const Candidates = () => {
     setSearchTerm('');
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>;
   
   if (error) return (
     <div className="min-h-screen flex items-center justify-center">
@@ -116,7 +118,7 @@ const Candidates = () => {
         <h1 className='text-xl text-center'>Something went wrong</h1>
         <button 
           onClick={() => window.location.reload()} 
-          className='text-white text-sm text-center flex items-center inline-block p-2 bg-blue-700 rounded mt-2'
+          className='text-white text-sm text-center block m-auto p-2 bg-blue-700 rounded mt-2'
         >
           Retry
         </button>

@@ -48,7 +48,7 @@ const Companies = () => {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center flex-col gap-4">
-        <p className="text-red-500">Error: {error}</p>
+        <p className="text-red-500">{error}</p>
         <button 
           onClick={fetchCompanies}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
