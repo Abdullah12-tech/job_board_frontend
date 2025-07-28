@@ -10,6 +10,7 @@ import {
 import { authContext } from '../context/AuthContext';
 import { toast } from 'sonner';
 import { applicationContext } from '../context/applicationContext';
+import { useLocation } from 'react-router-dom';
 
 // Validation Schema
 const candidateSchema = yup.object().shape({
@@ -50,6 +51,7 @@ const candidateSchema = yup.object().shape({
 });
 
 const CandidateDashboard = () => {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('profile');
   const {
     fetchCandidateProfile,
@@ -63,12 +65,9 @@ const CandidateDashboard = () => {
   const { fetchUserApplications, applications } = useContext(applicationContext);
   const [isLoadingApplications, setIsLoadingApplications] = useState(false);
 
-  useEffect(() => {
-    if (activeTab === 'applications') {
-      setIsLoadingApplications(true);
-      fetchUserApplications().finally(() => setIsLoadingApplications(false));
-    }
-  }, [activeTab]);
+  // Track if we've fetched applications to prevent duplicate fetches
+  const [hasFetchedApplications, setHasFetchedApplications] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -92,6 +91,7 @@ const CandidateDashboard = () => {
   const experiences = watch('experiences');
   const education = watch('education');
 
+  // Load profile data on initial mount
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -116,17 +116,95 @@ const CandidateDashboard = () => {
     loadProfile();
   }, [fetchCandidateProfile, reset]);
 
+  // Handle tab changes and navigation
+  useEffect(() => {
+    // Extract tab from URL if using route-based tabs
+    const searchParams = new URLSearchParams(location.search);
+    const tab = searchParams.get('tab') || 'profile';
+    setActiveTab(tab);
+
+    // Fetch data based on active tab
+    if (tab === 'applications' && !hasFetchedApplications) {
+      fetchApplications();
+    }
+  }, [location.search, hasFetchedApplications]);
+
+  const fetchApplications = async () => {
+    setIsLoadingApplications(true);
+    try {
+      await fetchUserApplications();
+      setHasFetchedApplications(true);
+    } catch (error) {
+      toast.error('Failed to load applications');
+    } finally {
+      setIsLoadingApplications(false);
+    }
+  };
+
+  const handleTabChange = (tab) => {
+    // Only update if changing to a different tab
+    if (tab !== activeTab) {
+      setActiveTab(tab);
+      // Reset fetched state when changing away from applications
+      if (activeTab === 'applications') {
+        setHasFetchedApplications(false);
+      }
+    }
+    // If clicking the same tab, force a refresh
+    else if (tab === 'applications') {
+      fetchApplications();
+    }
+  };
+
+  // In your form submission handler
   const onSubmit = async (data) => {
     try {
-      const success = await updateCandidateProfile(data);
-      if (success) {
+      // Prepare data for API
+      const apiData = {
+        ...data,
+        experiences: data.experiences.map(exp => ({
+          title: exp.title,
+          company: exp.company,
+          startDate: exp.startDate,
+          endDate: exp.currentlyWorking ? null : exp.endDate,
+          currentlyWorking: exp.currentlyWorking || false,
+          description: exp.description || ''
+        })),
+        education: data.education.map(edu => ({
+          institution: edu.institution,
+          degree: edu.degree,
+          fieldOfStudy: edu.fieldOfStudy,
+          startDate: edu.startDate,
+          endDate: edu.currentlyStudying ? null : edu.endDate,
+          currentlyStudying: edu.currentlyStudying || false,
+          description: edu.description || ''
+        }))
+      };
+
+      const updatedProfile = await updateCandidateProfile(apiData);
+
+      if (updatedProfile) {
+        // Update form with the returned data
+        reset({
+          ...updatedProfile,
+          experiences: updatedProfile.experiences || [],
+          education: updatedProfile.education || []
+        });
+
         setEditingExperience(null);
         setEditingEducation(null);
+        toast.success("Profile updated successfully");
       }
     } catch (err) {
       console.error('Failed to update profile:', err);
+      toast.error(err.message || "Failed to update profile");
     }
   };
+
+  // In your ExperienceForm component
+
+
+  // In your EducationForm component
 
   const handleAddSkill = (e) => {
     if (e.key === 'Enter' && e.target.value.trim()) {
@@ -228,7 +306,7 @@ const CandidateDashboard = () => {
                 {['profile', 'applications', 'saved', 'notifications', 'messages', 'settings'].map((tab) => (
                   <button
                     key={tab}
-                    onClick={() => setActiveTab(tab)}
+                    onClick={() => handleTabChange(tab)}
                     className={`w-full text-left px-4 py-2 rounded-lg flex items-center ${activeTab === tab ? 'bg-blue-50 text-primary' : 'text-gray-600 hover:bg-gray-100'}`}
                   >
                     {tab === 'profile' && <FiUser className="mr-3" />}
@@ -261,7 +339,7 @@ const CandidateDashboard = () => {
                       <p className="text-red-500 text-sm mt-1">{errors.name?.message}</p>
 
                       <label className="block text-gray-600 text-sm mt-4 mb-1">Email*</label>
-                      <input
+                      <input disabled
                         {...register('email')}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                       />
@@ -446,41 +524,49 @@ const CandidateDashboard = () => {
               </div>
             )}
 
-            {/* Other Tabs */}
-            {/* {activeTab !== 'profile' && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h1 className="text-2xl font-bold mb-6">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h1>
-                <p className="text-gray-600">
-                  {activeTab === 'saved' && 'No saved jobs yet.'}
-                  {activeTab === 'notifications' && 'No notifications yet.'}
-                  {activeTab === 'messages' && 'No messages yet.'}
-                  {activeTab === 'settings' && 'Settings panel coming soon.'}
-                </p>
-              </div>
-            )} */}
-
             {activeTab === 'applications' && (
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h1 className="text-2xl font-bold mb-6">My Applications</h1>
 
                 {isLoadingApplications ? (
-                  <p>Loading applications...</p>
+                  <div className="flex justify-center items-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                  </div>
                 ) : applications.length === 0 ? (
                   <p className="text-gray-500 italic">No applications yet.</p>
                 ) : (
                   <div className="space-y-4">
                     {applications.map((app, i) => (
-                      <div key={app._id || i} className="p-4 border rounded-lg">
+                      <div key={app._id || i} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
                         <h2 className="text-lg font-semibold">{app.jobID?.title}</h2>
                         <p className="text-sm text-gray-500">{app.jobID?.company}</p>
                         <p className="text-sm text-gray-600 mt-1">
-                          Status: <span className="font-medium">{app.status || 'Pending'}</span>
+                          Status: <span className={`font-medium ${app.status === 'rejected' ? 'text-red-500' :
+                            app.status === 'accepted' ? 'text-green-500' :
+                              'text-yellow-500'
+                            }`}>
+                            {app.status || 'Pending'}
+                          </span>
                         </p>
                         <p className="text-sm text-gray-600">Applied on: {new Date(app.createdAt).toLocaleDateString()}</p>
                       </div>
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+
+            {activeTab !== 'profile' && activeTab !== 'applications' && (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h1 className="text-2xl font-bold mb-6">
+                  {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+                </h1>
+                <p className="text-gray-600">
+                  {activeTab === 'saved' && 'No saved jobs yet.'}
+                  {activeTab === 'notifications' && 'No notifications yet.'}
+                  {activeTab === 'messages' && 'No messages yet.'}
+                  {activeTab === 'settings' && 'Settings panel coming soon.'}
+                </p>
               </div>
             )}
           </div>
@@ -490,7 +576,7 @@ const CandidateDashboard = () => {
   );
 };
 
-// Experience Form Component
+// Experience Form Component (unchanged)
 const ExperienceForm = ({ experience, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     ...experience,
@@ -500,6 +586,7 @@ const ExperienceForm = ({ experience, onSave, onCancel }) => {
     description: experience.description || ''
   });
   const [errors, setErrors] = useState({});
+
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -527,7 +614,12 @@ const ExperienceForm = ({ experience, onSave, onCancel }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validate()) {
-      onSave(formData);
+      onSave({
+        ...formData,
+        currentlyWorking: !!formData.currentlyWorking,
+        startDate: formData.startDate || null,
+        endDate: formData.currentlyWorking ? null : (formData.endDate || null)
+      });
     }
   };
 
@@ -624,7 +716,7 @@ const ExperienceForm = ({ experience, onSave, onCancel }) => {
             Cancel
           </button>
           <button
-            type="submit"
+            type="submit" // Make sure this is type="submit"
             className="px-4 py-2 bg-primary text-white rounded"
           >
             Save
@@ -635,7 +727,7 @@ const ExperienceForm = ({ experience, onSave, onCancel }) => {
   );
 };
 
-// Education Form Component
+// Education Form Component (unchanged)
 const EducationForm = ({ education, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     ...education,
@@ -672,7 +764,12 @@ const EducationForm = ({ education, onSave, onCancel }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validate()) {
-      onSave(formData);
+      onSave({
+        ...formData,
+        currentlyStudying: !!formData.currentlyStudying,
+        startDate: formData.startDate || null,
+        endDate: formData.currentlyStudying ? null : (formData.endDate || null)
+      });
     }
   };
 
@@ -770,7 +867,7 @@ const EducationForm = ({ education, onSave, onCancel }) => {
             Cancel
           </button>
           <button
-            type="submit"
+            type="submit" // Make sure this is type="submit"
             className="px-4 py-2 bg-primary text-white rounded"
           >
             Save

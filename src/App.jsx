@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Jobs from './pages/Jobs';
 import JobDetails from './pages/JobDetails';
-import Companies from './pages/Companies';
 import CompanyDetails from './pages/CompanyDetails';
 import Candidates from './pages/Candidates';
 import PostJob from './pages/PostJob';
@@ -16,7 +15,7 @@ import ApplyJob from './pages/applyJob';
 import CandidateDashboard from './pages/CandidateDashboard';
 import MainLayout from './layouts/MainLayout';
 import DashboardProtect from './components/DashboardProtect';
-import CompanyProfile from './pages/CompanyProfile';
+// import CompanyProfile from './pages/CompanyProfile';
 import VerifyAccount from './pages/VerifyAccount';
 import ForgotPassword from './pages/ForgetPassword';
 import { Toaster } from 'sonner';
@@ -37,6 +36,8 @@ import AnalyticsPage from './pages/Admin/Analytics';
 import SettingsPage from './pages/Admin/Setting';
 import ResendVerification from './pages/ResendVerificationMail';
 import VerifyEmailSent from './pages/VerifyEmailSent';
+import Companies from './pages/Companies';
+import CandidateDetails from './pages/CandidateDetails';
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
                         <Route path="/companies" element={<Companies />} />
                         <Route path="/companies/:id" element={<CompanyDetails />} />
                         <Route path="/candidates" element={<Candidates />} />
+                        <Route path="/candidates/:id" element={<CandidateDetails />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
                         <Route path="/verify-account/:token" element={<VerifyAccount />} />
@@ -71,7 +73,7 @@ function App() {
                           </Route>
                           <Route path="/apply/:id" element={<ApplyJob />} />
                           <Route element={<IsEmployer />}>
-                            <Route path="/dashboard/company/profile" element={<CompanyProfile />} />
+                            {/* <Route path="/dashboard/company/profile" element={<CompanyProfile />} /> */}
                             <Route path="/dashboard/company" element={<CompanyDashboard />} />
                           </Route>
                           <Route element={<CanPostJob />}>
@@ -79,7 +81,6 @@ function App() {
                           </Route>
                         </Route>
                       </Route>
-
                       {/* Protected dashboard routes */}
 
                       {/* Admin routes with AdminLayout and protection */}

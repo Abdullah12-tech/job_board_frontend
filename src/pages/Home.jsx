@@ -3,29 +3,11 @@ import { Link } from 'react-router-dom';
 
 const Home = () => {
   const featuredJobs = [
-    {
-      id: 1,
-      title: 'Senior Frontend Developer',
-      company: 'TechCorp',
-      location: 'San Francisco, CA',
-      salary: '$120,000 - $150,000',
-      type: 'Full-time',
-      posted: '2 days ago',
-      logo: 'https://via.placeholder.com/50',
-    },
-    // Add more featured jobs
+    
   ];
 
   const featuredCompanies = [
-    {
-      id: 1,
-      name: 'TechCorp',
-      logo: 'https://via.placeholder.com/80',
-      jobs: 12,
-      location: 'San Francisco, CA',
-      industry: 'Software Development',
-    },
-    // Add more featured companies
+    
   ];
 
   return (

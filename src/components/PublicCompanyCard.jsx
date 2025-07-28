@@ -1,69 +1,48 @@
-import { Link } from 'react-router-dom';
-import { FiBriefcase, FiMapPin, FiLayers } from 'react-icons/fi';
+import { Link } from "react-router-dom";
+import { FiBriefcase, FiMapPin, FiUsers } from "react-icons/fi";
 
 const CompanyCard = ({ company }) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
-      <div className="p-6">
-        <div className="flex items-start gap-4">
-          <div className="flex-shrink-0">
-            <img
-              src={company.logo || 'https://via.placeholder.com/80'}
-              alt={`${company.name} logo`}
-              className="w-16 h-16 object-contain rounded-full border border-gray-200"
-              onError={(e) => {
-                e.target.src = 'https://via.placeholder.com/80';
-              }}
-            />
+    <Link 
+      to={`/companies/${company._id}`}
+      className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow duration-300"
+    >
+      <div className="flex items-start gap-4">
+        <img 
+          src={company.logo || '/default-company.png'} 
+          alt={company.name} 
+          className="w-16 h-16 object-contain border border-gray-200 rounded"
+        />
+        <div>
+          <h3 className="text-lg font-semibold mb-1">{company.name}</h3>
+          <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-600 mt-2">
+            {company.industry && (
+              <span className="flex items-center">
+                <FiBriefcase className="mr-1" /> {company.industry}
+              </span>
+            )}
+            {company.location && (
+              <span className="flex items-center">
+                <FiMapPin className="mr-1" /> {company.location}
+              </span>
+            )}
+            {company.companySize && (
+              <span className="flex items-center">
+                <FiUsers className="mr-1" /> {company.companySize}
+              </span>
+            )}
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold text-gray-900 truncate">
-              <Link to={`/companies/${company.id}`} className="hover:text-blue-600">
-                {company.name}
-              </Link>
-            </h3>
-            
-            <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-600">
-              {company.industry && (
-                <span className="inline-flex items-center">
-                  <FiBriefcase className="mr-1" />
-                  {company.industry}
-                </span>
-              )}
-              
-              {company.location && (
-                <span className="inline-flex items-center">
-                  <FiMapPin className="mr-1" />
-                  {company.location}
-                </span>
-              )}
-              
-              {company.jobsCount > 0 && (
-                <span className="inline-flex items-center">
-                  <FiLayers className="mr-1" />
-                  {company.jobsCount} {company.jobsCount === 1 ? 'job' : 'jobs'}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-        
-        {company.description && (
-          <p className="mt-4 text-gray-600 line-clamp-3">
+          <p className="text-sm text-gray-500 mt-2 line-clamp-2">
             {company.description}
           </p>
-        )}
-        
-        <div className="mt-6">
-          <Link
-            to={`/companies/${company.id}`}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 transition-colors"
-          >
-            View Company
-          </Link>
+          <div className="mt-3">
+            <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+              {company.jobsCount} {company.jobsCount === 1 ? 'job' : 'jobs'} available
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

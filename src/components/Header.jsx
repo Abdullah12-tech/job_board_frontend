@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { FiSearch, FiBriefcase, FiUsers, FiHome, FiBookmark, FiBell, FiMessageSquare } from 'react-icons/fi';
 import { Menu, Transition } from '@headlessui/react';
 import { authContext } from '../context/AuthContext';
@@ -8,12 +8,18 @@ const Header = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const token = localStorage.getItem("accessToken");
   const { currentUser, isAuthenticated, setCurrentUser, fetchCurrentUser, logout } = useContext(authContext);
-
-  useEffect(() => {
-    if (token) {
-      fetchCurrentUser();
-    }
-  }, [fetchCurrentUser]);
+  const navigate = useNavigate();
+  const isAuth = isAuthenticated();
+        useEffect(()=>{
+            if(isAuth){
+                fetchCurrentUser();
+            }
+        },[isAuth,fetchCurrentUser,navigate])
+  // useEffect(() => {
+  //   if (token) {
+  //     fetchCurrentUser();
+  //   }
+  // }, [fetchCurrentUser]);
 
   const handleLogout = () => {
     logout()

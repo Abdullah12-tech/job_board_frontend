@@ -48,6 +48,7 @@ const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem("accessToken")
     setCurrentUser(null);
+    navigate("/login")
   }
   // context/AuthContext.js
   const signup = async (formData) => {

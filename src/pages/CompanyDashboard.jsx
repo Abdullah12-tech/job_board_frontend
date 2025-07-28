@@ -15,14 +15,14 @@ import JobEditModal from '../components/editJobModal';
 
 const profileSchema = yup.object({
   companyName: yup.string().required('Company name is required'),
-  website: yup.string().url('Enter a valid URL').required('Website is required'),
-  linkedin: yup.string().url('Enter a valid URL').nullable(),
-  description: yup.string().max(500, 'Description must be less than 500 characters').required('Description is required'),
+  companyWebsite: yup.string().url('Enter a valid URL').required('Website is required'),
+  companyLinkedin: yup.string().url('Enter a valid URL').nullable(),
+  companyDescription: yup.string().max(500, 'Description must be less than 500 characters').required('Description is required'),
   industry: yup.string().required('Industry is required'),
   companySize: yup.string().required('Company size is required'),
   location: yup.string().required('Location is required'),
   phone: yup.string().nullable(),
-  email: yup.string().email('Enter a valid email').required('Email is required'),
+  companyEmail: yup.string().email('Enter a valid email').required('Email is required'),
 });
 
 const CompanyDashboard = () => {
@@ -36,7 +36,6 @@ const CompanyDashboard = () => {
   const [selectedJob, setSelectedJob] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-
   const companySizeOptions = [
     { value: '', label: 'Select company size' },
     { value: '1-10', label: '1-10 employees' },
@@ -46,6 +45,7 @@ const CompanyDashboard = () => {
     { value: '501-1000', label: '501-1000 employees' },
     { value: '1000+', label: '1000+ employees' },
   ];
+
   useEffect(() => {
     if (!isAuthenticated()) {
       toast.warning('Please log in to access the dashboard');
@@ -53,7 +53,6 @@ const CompanyDashboard = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Initialize form and logo preview
   useEffect(() => {
     if (profile) {
       reset(profile);
@@ -72,38 +71,48 @@ const CompanyDashboard = () => {
     resolver: yupResolver(profileSchema),
     defaultValues: profile || {
       companyName: '',
-      website: '',
-      linkedin: '',
-      description: '',
+      companyWebsite: '',
+      companyLinkedin: '',
+      companyDescription: '',
       industry: '',
       companySize: '',
       location: '',
       phone: '',
-      email: '',
+      companyEmail: '',
     },
   });
+
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
 
   const onSubmit = async (data) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
     try {
-      const formData = new FormData();
-
-      // Append all form fields
-      Object.keys(data).forEach(key => {
-        formData.append(key, data[key]);
-      });
-
-      // Append the logo file if it's a new one
+      let companyLogoBase64 = null;
+      
       if (logoFile) {
-        formData.append('companyLogo', logoFile);
+        companyLogoBase64 = await convertToBase64(logoFile);
       }
 
-      await updateProfile(formData);
+      const profileData = {
+        ...data,
+        ...(logoFile ? { companyLogo: companyLogoBase64 } : {}),
+        ...(logoFile === null && !logoPreview ? { companyLogo: null } : {}),
+      };
+
+      await updateProfile(profileData);
+      console.log(profileData);
       toast.success('Profile updated successfully');
       setIsEditing(false);
-      setLogoFile(null); // Reset file after successful upload
+      setLogoFile(null);
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error(error.message || 'Failed to update profile');
@@ -126,19 +135,17 @@ const CompanyDashboard = () => {
   const handleLogoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type and size
       if (!file.type.match('image.*')) {
         toast.error('Please select an image file');
         return;
       }
-      if (file.size > 2 * 1024 * 1024) { // 2MB
+      if (file.size > 2 * 1024 * 1024) {
         toast.error('Image size should be less than 2MB');
         return;
       }
 
       setLogoFile(file);
 
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setLogoPreview(reader.result);
@@ -302,19 +309,19 @@ const CompanyDashboard = () => {
                         {isEditing ? (
                           <>
                             <input
-                              {...register('website')}
+                              {...register('companyWebsite')}
                               className="w-full px-3 py-2 border border-gray-300 rounded-md"
                               placeholder="https://example.com"
                             />
-                            {errors.website && (
-                              <p className="mt-1 text-sm text-red-600">{errors.website.message}</p>
+                            {errors.companyWebsite && (
+                              <p className="mt-1 text-sm text-red-600">{errors.companyWebsite.message}</p>
                             )}
                           </>
                         ) : (
                           <div className="flex items-center text-gray-800">
                             <FiGlobe className="mr-2" />
-                            <a href={profile.website} target="_blank" rel="noopener noreferrer" className="hover:text-primary">
-                              {profile.website}
+                            <a href={profile.companyWebsite} target="_blank" rel="noopener noreferrer" className="hover:text-primary">
+                              {profile.companyWebsite}
                             </a>
                           </div>
                         )}
@@ -325,20 +332,20 @@ const CompanyDashboard = () => {
                         {isEditing ? (
                           <>
                             <input
-                              {...register('linkedin')}
+                              {...register('companyLinkedin')}
                               className="w-full px-3 py-2 border border-gray-300 rounded-md"
                               placeholder="https://linkedin.com/company/example"
                             />
-                            {errors.linkedin && (
-                              <p className="mt-1 text-sm text-red-600">{errors.linkedin.message}</p>
+                            {errors.companyLinkedin && (
+                              <p className="mt-1 text-sm text-red-600">{errors.companyLinkedin.message}</p>
                             )}
                           </>
                         ) : (
                           <div className="flex items-center text-gray-800">
                             <FiLinkedin className="mr-2" />
-                            {profile.linkedin ? (
-                              <a href={profile.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-primary">
-                                {profile.linkedin}
+                            {profile.companyLinkedin ? (
+                              <a href={profile.companyLinkedin} target="_blank" rel="noopener noreferrer" className="hover:text-primary">
+                                {profile.companyLinkedin}
                               </a>
                             ) : (
                               <span>Not provided</span>
@@ -352,16 +359,16 @@ const CompanyDashboard = () => {
                         {isEditing ? (
                           <>
                             <textarea
-                              {...register('description')}
+                              {...register('companyDescription')}
                               rows={4}
                               className="w-full px-3 py-2 border border-gray-300 rounded-md"
                             />
-                            {errors.description && (
-                              <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+                            {errors.companyDescription && (
+                              <p className="mt-1 text-sm text-red-600">{errors.companyDescription.message}</p>
                             )}
                           </>
                         ) : (
-                          <p className="text-gray-800">{profile.description}</p>
+                          <p className="text-gray-800">{profile.companyDescription}</p>
                         )}
                       </div>
 
@@ -415,18 +422,18 @@ const CompanyDashboard = () => {
                         {isEditing ? (
                           <>
                             <input
-                              {...register('email')}
+                              {...register('companyEmail')}
                               type="email"
                               className="w-full px-3 py-2 border border-gray-300 rounded-md"
                             />
-                            {errors.email && (
-                              <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                            {errors.companyEmail && (
+                              <p className="mt-1 text-sm text-red-600">{errors.companyEmail.message}</p>
                             )}
                           </>
                         ) : (
                           <div className="flex items-center text-gray-800">
                             <FiMail className="mr-2" />
-                            <span>{profile.email}</span>
+                            <span>{profile.companyEmail}</span>
                           </div>
                         )}
                       </div>

@@ -1,160 +1,154 @@
-import { useParams } from 'react-router-dom';
-import { FiMapPin, FiGlobe, FiUsers, FiBriefcase, FiClock, FiLinkedin, FiTwitter, FiFacebook } from 'react-icons/fi';
-import JobCard from '../components/JobCard';
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { FiArrowLeft, FiExternalLink, FiPhone, FiMail, FiUsers, FiMapPin, FiBriefcase } from "react-icons/fi";
+import JobCard from "../components/JobCard";
+import { Link } from "react-router-dom";
 
 const CompanyDetails = () => {
   const { id } = useParams();
-  
-  // In a real app, this would come from an API call
-  const {} = {  };
+  const [company, setCompany] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const baseUrl = import.meta.env.VITE_BASE_URL;
+
+  const fetchCompany = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${baseUrl}/users/employers/${id}`);
+      if (!response.ok) throw new Error('Failed to fetch company');
+      const { data } = await response.json();
+      setCompany(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCompany();
+  }, [id]);
+
+  if (loading && !company) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center flex-col gap-4">
+        <p className="text-red-500">Error: {error}</p>
+        <button 
+          onClick={fetchCompany}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!company) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Company not found</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Company Header */}
-      <div className="bg-white shadow-sm">
-        <div className="relative">
-          <img src={company.coverImage} alt={company.name} className="w-full h-48 object-cover" />
-          <div className="absolute -bottom-16 left-8">
-            <img src={company.logo} alt={company.name} className="w-32 h-32 object-contain border-4 border-white rounded-lg bg-white" />
-          </div>
-        </div>
-        
-        <div className="pt-20 pb-6 px-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h1 className="text-3xl font-bold">{company.name}</h1>
-              <p className="text-gray-600 text-lg">{company.industry}</p>
-            </div>
-            <div className="flex gap-3">
-              <button className="px-6 py-2 bg-primary text-white rounded-lg font-medium hover:bg-accent transition-colors">
-                Follow
-              </button>
-              <button className="px-6 py-2 bg-white border border-primary text-primary rounded-lg font-medium hover:bg-blue-50 transition-colors">
-                Visit Website
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4">
+        <Link 
+          to="/companies" 
+          className="flex items-center text-blue-500 mb-6 hover:underline"
+        >
+          <FiArrowLeft className="mr-2" /> Back to Companies
+        </Link>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            {/* About Section */}
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <h2 className="text-xl font-bold mb-4">About {company?.name}</h2>
-              <p className="text-gray-700 mb-6">{company?.about}</p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="font-bold mb-2">Tech Stack</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {company?.techStack.map((tech, index) => (
-                      <span key={index} className="bg-blue-100 text-primary px-3 py-1 rounded-full text-sm">
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="font-bold mb-2">Company Details</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center text-gray-600">
-                      <FiUsers className="mr-3" />
-                      <span>{company.size}</span>
-                    </div>
-                    <div className="flex items-center text-gray-600">
-                      <FiClock className="mr-3" />
-                      <span>Founded in {company.founded}</span>
-                    </div>
-                    <div className="flex items-center text-gray-600">
-                      <FiGlobe className="mr-3" />
-                      <a href={company.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                        {company.website}
-                      </a>
-                    </div>
-                    <div className="flex items-start text-gray-600">
-                      <FiMapPin className="mr-3 mt-1" />
-                      <div>
-                        {company?.location.map((loc, idx) => (
-                          <div key={idx}>{loc}</div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="w-full md:w-1/4 flex flex-col items-center">
+              <img 
+                src={company.logo || '/default-company.png'} 
+                alt={company.name} 
+                className="w-32 h-32 object-contain rounded-full border border-gray-200 mb-4"
+              />
+              {company.isVerified && (
+                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full mb-4">
+                  Verified Company
+                </span>
+              )}
             </div>
-            
-            {/* Benefits Section */}
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <h2 className="text-xl font-bold mb-4">Benefits at {company.name}</h2>
-              <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {company.benefits.map((benefit, index) => (
-                  <li key={index} className="flex items-start">
-                    <span className="text-green-500 mr-2">✓</span>
-                    <span>{benefit}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            {/* Social Links */}
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <h3 className="font-bold mb-4">Follow {company.name}</h3>
-              <div className="flex space-x-4">
-                <a href="#" className="text-gray-500 hover:text-primary">
-                  <FiLinkedin size={24} />
-                </a>
-                <a href="#" className="text-gray-500 hover:text-primary">
-                  <FiTwitter size={24} />
-                </a>
-                <a href="#" className="text-gray-500 hover:text-primary">
-                  <FiFacebook size={24} />
-                </a>
-              </div>
-            </div>
-            
-            {/* Similar Companies */}
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <h3 className="font-bold mb-4">Similar Companies</h3>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <img src="https://via.placeholder.com/40" alt="Company" className="w-10 h-10 object-contain" />
-                  <div>
-                    <h4 className="font-medium">DevSolutions</h4>
-                    <p className="text-gray-600 text-sm">Software Development</p>
-                  </div>
+
+            <div className="w-full md:w-3/4">
+              <h1 className="text-3xl font-bold mb-2">{company.name}</h1>
+              <p className="text-gray-600 mb-6">{company.description}</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <div className="flex items-center text-gray-700">
+                  <FiMapPin className="mr-2" />
+                  <span>{company.location || 'Not specified'}</span>
                 </div>
-                {/* More similar companies */}
+                <div className="flex items-center text-gray-700">
+                  <FiBriefcase className="mr-2" />
+                  <span>{company.industry || 'Not specified'}</span>
+                </div>
+                <div className="flex items-center text-gray-700">
+                  <FiUsers className="mr-2" />
+                  <span>{company.companySize || 'Not specified'}</span>
+                </div>
+                {company.website && (
+                  <div className="flex items-center text-blue-500 hover:underline">
+                    <FiExternalLink className="mr-2" />
+                    <a href={company.website} target="_blank" rel="noopener noreferrer">
+                      Website
+                    </a>
+                  </div>
+                )}
+                {company.linkedin && (
+                  <div className="flex items-center text-blue-500 hover:underline">
+                    <FiExternalLink className="mr-2" />
+                    <a href={company.linkedin} target="_blank" rel="noopener noreferrer">
+                      LinkedIn
+                    </a>
+                  </div>
+                )}
+                {company.phone && (
+                  <div className="flex items-center text-gray-700">
+                    <FiPhone className="mr-2" />
+                    <span>{company.phone}</span>
+                  </div>
+                )}
+                {company.email && (
+                  <div className="flex items-center text-gray-700">
+                    <FiMail className="mr-2" />
+                    <span>{company.email}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
-        
-        {/* Jobs Section */}
-        <div className="mt-12">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Open Positions at {company.name}</h2>
-            <p className="text-gray-600">{company.jobs.length} jobs</p>
-          </div>
+
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-6">Open Positions ({company.jobs.length})</h2>
           
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            {company.jobs.length > 0 ? (
-              company.jobs.map(job => (
-                <JobCard key={job.id} job={{ ...job, company: company.name, logo: company.logo }} />
-              ))
-            ) : (
-              <div className="p-8 text-center">
-                <p className="text-gray-600">No open positions at the moment. Check back later!</p>
-              </div>
-            )}
-          </div>
+          {company.jobs.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {company.jobs.map(job => (
+                <JobCard key={job._id} job={job} />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white p-8 rounded-lg shadow-sm text-center">
+              <p className="text-gray-600">This company currently has no open positions.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
