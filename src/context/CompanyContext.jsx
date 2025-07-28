@@ -23,7 +23,7 @@ export const DashboardProvider = ({ children }) => {
               Authorization: `Bearer ${token}`,
             },
           }),
-          fetch(`${baseUrl}/jobs`, {
+          fetch(`${baseUrl}/company/jobs`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -36,6 +36,7 @@ export const DashboardProvider = ({ children }) => {
         const jobsData = await jobsRes.json();
         setProfile(profileData);
         setJobs(jobsData);
+        console.log(jobsData);
       } catch (error) {
         console.error('Error fetching data:', error);
       }

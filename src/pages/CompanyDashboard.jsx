@@ -448,7 +448,7 @@ const CompanyDashboard = () => {
                               className="w-full px-3 py-2 border border-gray-300 rounded-md"
                             />
                             {errors.phone && (
-                              <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+                              <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
                             )}
                           </>
                         ) : (
@@ -487,7 +487,7 @@ const CompanyDashboard = () => {
                 </div>
                 <div className="space-y-4">
                   {jobs.map(job => (
-                    <div key={job._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div key={job?.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                         <div className="mb-4 md:mb-0">
                           <h3 className="font-bold text-lg">{job.title}</h3>
@@ -515,7 +515,7 @@ const CompanyDashboard = () => {
                             Edit
                           </button>
                           <Link
-                            to={`/jobs/${job._id}`}
+                            to={`/jobs/${job?.id}`}
                             className="px-3 py-1 bg-blue-50 text-primary rounded-lg text-sm font-medium hover:bg-blue-100"
                           >
                             Manage

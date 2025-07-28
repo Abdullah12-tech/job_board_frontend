@@ -15,6 +15,8 @@ const jobSchema = yup.object({
 
 const JobEditModal = ({ job, onClose }) => {
   const { updateJob } = useContext(DashboardContext);
+  console.log(job);
+  
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(jobSchema),
     defaultValues: {
@@ -27,8 +29,12 @@ const JobEditModal = ({ job, onClose }) => {
   });
 
   const onSubmit = async (data) => {
+    if (!job || !job?.id) {
+    console.error('Missing job ID:', job);
+    return;
+  }
     try {
-      await updateJob(job._id, data);
+      await updateJob(job?.id, data);
       onClose();
     } catch (error) {
       console.error('Error updating job:', error);

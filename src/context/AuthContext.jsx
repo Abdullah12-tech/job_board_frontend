@@ -25,7 +25,7 @@ const AuthProvider = ({ children }) => {
     }
   }
 
-  const fetchCurrentUser = useCallback(async () => {
+  const fetchCurrentUser = useCallback(async (token) => {
     if (!token) return;
     try {
       const res = await fetch(`${baseUrl}/auth/user`, {
@@ -50,6 +50,7 @@ const AuthProvider = ({ children }) => {
     setCurrentUser(null);
     navigate("/login")
   }
+
   // context/AuthContext.js
   const signup = async (formData) => {
     try {

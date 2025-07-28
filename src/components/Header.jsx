@@ -8,18 +8,16 @@ const Header = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const token = localStorage.getItem("accessToken");
   const { currentUser, isAuthenticated, setCurrentUser, fetchCurrentUser, logout } = useContext(authContext);
-  const navigate = useNavigate();
-  const isAuth = isAuthenticated();
-        useEffect(()=>{
-            if(isAuth){
-                fetchCurrentUser();
-            }
-        },[isAuth,fetchCurrentUser,navigate])
-  // useEffect(() => {
-  //   if (token) {
-  //     fetchCurrentUser();
-  //   }
-  // }, [fetchCurrentUser]);
+  const [tokenChanged, setTokenChanged] = useState(false);
+
+useEffect(() => {
+  const token = localStorage.getItem("accessToken");
+  if (token) {
+    fetchCurrentUser(token);
+    setTokenChanged(true);
+  }
+}, [localStorage.getItem("accessToken")]);
+
 
   const handleLogout = () => {
     logout()
