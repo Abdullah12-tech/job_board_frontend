@@ -82,34 +82,29 @@ const CompanyDashboard = () => {
     },
   });
 
-  const convertToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
-    });
-  };
-
   const onSubmit = async (data) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
     try {
-      let companyLogoBase64 = null;
+      const formData = new FormData();
       
+      // Append all form data
+      Object.keys(data).forEach(key => {
+        formData.append(key, data[key]);
+      });
+
+      // Append logo file if it exists
       if (logoFile) {
-        companyLogoBase64 = await convertToBase64(logoFile);
+        formData.append('companyLogo', logoFile);
       }
 
-      const profileData = {
-        ...data,
-        ...(logoFile ? { companyLogo: companyLogoBase64 } : {}),
-        ...(logoFile === null && !logoPreview ? { companyLogo: null } : {}),
-      };
+      // If logo is removed, explicitly set to null
+      if (logoFile === null && !logoPreview) {
+        formData.append('companyLogo', '');
+      }
 
-      await updateProfile(profileData);
-      console.log(profileData);
+      await updateProfile(formData);
       toast.success('Profile updated successfully');
       setIsEditing(false);
       setLogoFile(null);

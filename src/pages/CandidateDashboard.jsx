@@ -64,8 +64,6 @@ const CandidateDashboard = () => {
   const [editingEducation, setEditingEducation] = useState(null);
   const { fetchUserApplications, applications } = useContext(applicationContext);
   const [isLoadingApplications, setIsLoadingApplications] = useState(false);
-
-  // Track if we've fetched applications to prevent duplicate fetches
   const [hasFetchedApplications, setHasFetchedApplications] = useState(false);
 
   const {
@@ -87,9 +85,9 @@ const CandidateDashboard = () => {
     }
   });
 
-  const skills = watch('skills');
-  const experiences = watch('experiences');
-  const education = watch('education');
+  const skills = watch('skills') || [];
+  const experiences = watch('experiences') || [];
+  const education = watch('education') || [];
 
   // Load profile data on initial mount
   useEffect(() => {
@@ -118,12 +116,10 @@ const CandidateDashboard = () => {
 
   // Handle tab changes and navigation
   useEffect(() => {
-    // Extract tab from URL if using route-based tabs
     const searchParams = new URLSearchParams(location.search);
     const tab = searchParams.get('tab') || 'profile';
     setActiveTab(tab);
 
-    // Fetch data based on active tab
     if (tab === 'applications' && !hasFetchedApplications) {
       fetchApplications();
     }
@@ -142,27 +138,22 @@ const CandidateDashboard = () => {
   };
 
   const handleTabChange = (tab) => {
-    // Only update if changing to a different tab
     if (tab !== activeTab) {
       setActiveTab(tab);
-      // Reset fetched state when changing away from applications
       if (activeTab === 'applications') {
         setHasFetchedApplications(false);
       }
     }
-    // If clicking the same tab, force a refresh
     else if (tab === 'applications') {
       fetchApplications();
     }
   };
 
-  // In your form submission handler
   const onSubmit = async (data) => {
     try {
-      // Prepare data for API
       const apiData = {
         ...data,
-        experiences: data.experiences.map(exp => ({
+        experiences: (data.experiences || []).map(exp => ({
           title: exp.title,
           company: exp.company,
           startDate: exp.startDate,
@@ -170,7 +161,7 @@ const CandidateDashboard = () => {
           currentlyWorking: exp.currentlyWorking || false,
           description: exp.description || ''
         })),
-        education: data.education.map(edu => ({
+        education: (data.education || []).map(edu => ({
           institution: edu.institution,
           degree: edu.degree,
           fieldOfStudy: edu.fieldOfStudy,
@@ -184,13 +175,11 @@ const CandidateDashboard = () => {
       const updatedProfile = await updateCandidateProfile(apiData);
 
       if (updatedProfile) {
-        // Update form with the returned data
         reset({
           ...updatedProfile,
           experiences: updatedProfile.experiences || [],
           education: updatedProfile.education || []
         });
-
         setEditingExperience(null);
         setEditingEducation(null);
         toast.success("Profile updated successfully");
@@ -200,11 +189,6 @@ const CandidateDashboard = () => {
       toast.error(err.message || "Failed to update profile");
     }
   };
-
-  // In your ExperienceForm component
-
-
-  // In your EducationForm component
 
   const handleAddSkill = (e) => {
     if (e.key === 'Enter' && e.target.value.trim()) {
@@ -381,7 +365,7 @@ const CandidateDashboard = () => {
                   </div>
 
                   {/* Experience Section */}
-                  <div className="mb-8">
+                  {/* <div className="mb-8">
                     <div className="flex justify-between items-center mb-4">
                       <h2 className="text-xl font-bold">Experience</h2>
                       <button
@@ -442,10 +426,10 @@ const CandidateDashboard = () => {
                         <p className="text-gray-500 italic">No experience added yet.</p>
                       )
                     )}
-                  </div>
+                  </div> */}
 
                   {/* Education Section */}
-                  <div className="mb-8">
+                  {/* <div className="mb-8">
                     <div className="flex justify-between items-center mb-4">
                       <h2 className="text-xl font-bold">Education</h2>
                       <button
@@ -506,7 +490,7 @@ const CandidateDashboard = () => {
                         <p className="text-gray-500 italic">No education added yet.</p>
                       )
                     )}
-                  </div>
+                  </div> */}
 
                   {/* Save Button */}
                   {isDirty && (
@@ -576,306 +560,352 @@ const CandidateDashboard = () => {
   );
 };
 
-// Experience Form Component (unchanged)
-const ExperienceForm = ({ experience, onSave, onCancel }) => {
-  const [formData, setFormData] = useState({
-    ...experience,
-    startDate: experience.startDate || '',
-    endDate: experience.endDate || '',
-    currentlyWorking: experience.currentlyWorking || false,
-    description: experience.description || ''
-  });
-  const [errors, setErrors] = useState({});
+// const ExperienceForm = ({ experience, onSave, onCancel }) => {
+//   const [formData, setFormData] = useState({
+//     title: experience.title || '',
+//     company: experience.company || '',
+//     location: experience.location || '',
+//     startDate: experience.startDate ? new Date(experience.startDate).toISOString().split('T')[0] : '',
+//     endDate: experience.endDate && !experience.currentlyWorking ? new Date(experience.endDate).toISOString().split('T')[0] : '',
+//     currentlyWorking: experience.currentlyWorking || false,
+//     description: experience.description || ''
+//   });
 
+//   const [errors, setErrors] = useState({});
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : value
-    });
-  };
+//   const handleChange = (e) => {
+//     const { name, value, type, checked } = e.target;
+//     setFormData(prev => ({
+//       ...prev,
+//       [name]: type === 'checkbox' ? checked : value
+//     }));
+//   };
 
-  const validate = () => {
-    const newErrors = {};
-    if (!formData.title) newErrors.title = 'Job title is required';
-    if (!formData.company) newErrors.company = 'Company name is required';
-    if (!formData.startDate) newErrors.startDate = 'Start date is required';
-    if (!formData.currentlyWorking && !formData.endDate) {
-      newErrors.endDate = 'End date is required';
-    }
-    if (formData.endDate && new Date(formData.endDate) < new Date(formData.startDate)) {
-      newErrors.endDate = 'End date must be after start date';
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+//   const validate = () => {
+//     const newErrors = {};
+//     if (!formData.title.trim()) newErrors.title = 'Job title is required';
+//     if (!formData.company.trim()) newErrors.company = 'Company name is required';
+//     if (!formData.startDate) newErrors.startDate = 'Start date is required';
+    
+//     if (!formData.currentlyWorking) {
+//       if (!formData.endDate) {
+//         newErrors.endDate = 'End date is required';
+//       } else if (new Date(formData.endDate) < new Date(formData.startDate)) {
+//         newErrors.endDate = 'End date must be after start date';
+//       }
+//     }
+    
+//     setErrors(newErrors);
+//     return Object.keys(newErrors).length === 0;
+//   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (validate()) {
-      onSave({
-        ...formData,
-        currentlyWorking: !!formData.currentlyWorking,
-        startDate: formData.startDate || null,
-        endDate: formData.currentlyWorking ? null : (formData.endDate || null)
-      });
-    }
-  };
+//   const handleSubmit = (e) => {
+//     e.preventDefault();
+//     if (validate()) {
+//       onSave({
+//         ...formData,
+//         startDate: new Date(formData.startDate),
+//         endDate: formData.currentlyWorking ? null : new Date(formData.endDate),
+//         currentlyWorking: formData.currentlyWorking
+//       });
+//     }
+//   };
 
-  return (
-    <div className="bg-gray-50 p-4 rounded-lg mb-4">
-      <h3 className="font-bold mb-3">
-        {experience.index !== undefined ? 'Edit Experience' : 'Add New Experience'}
-      </h3>
-      <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-gray-600 text-sm mb-1">Job Title*</label>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded"
-            />
-            {errors.title && <p className="text-red-500 text-sm">{errors.title}</p>}
-          </div>
-          <div>
-            <label className="block text-gray-600 text-sm mb-1">Company*</label>
-            <input
-              type="text"
-              name="company"
-              value={formData.company}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded"
-            />
-            {errors.company && <p className="text-red-500 text-sm">{errors.company}</p>}
-          </div>
-        </div>
+//   return (
+//     <div className="bg-gray-50 p-4 rounded-lg mb-4">
+//       <h3 className="font-bold mb-3">
+//         {experience.index !== undefined ? 'Edit Experience' : 'Add New Experience'}
+//       </h3>
+//       <form onSubmit={handleSubmit}>
+//         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//           <div>
+//             <label className="block text-gray-600 text-sm mb-1">Job Title*</label>
+//             <input
+//               type="text"
+//               name="title"
+//               value={formData.title}
+//               onChange={handleChange}
+//               className={`w-full px-3 py-2 border rounded ${errors.title ? 'border-red-500' : ''}`}
+//               placeholder="e.g. Software Engineer"
+//             />
+//             {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+//           </div>
+//           <div>
+//             <label className="block text-gray-600 text-sm mb-1">Company*</label>
+//             <input
+//               type="text"
+//               name="company"
+//               value={formData.company}
+//               onChange={handleChange}
+//               className={`w-full px-3 py-2 border rounded ${errors.company ? 'border-red-500' : ''}`}
+//               placeholder="e.g. Google"
+//             />
+//             {errors.company && <p className="text-red-500 text-sm mt-1">{errors.company}</p>}
+//           </div>
+//         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-          <div>
-            <label className="block text-gray-600 text-sm mb-1">Start Date*</label>
-            <input
-              type="date"
-              name="startDate"
-              value={formData.startDate}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded"
-            />
-            {errors.startDate && <p className="text-red-500 text-sm">{errors.startDate}</p>}
-          </div>
-          <div>
-            <label className="block text-gray-600 text-sm mb-1">
-              End Date
-              {!formData.currentlyWorking && '*'}
-            </label>
-            <input
-              type="date"
-              name="endDate"
-              value={formData.endDate || ''}
-              onChange={handleChange}
-              disabled={formData.currentlyWorking}
-              className={`w-full px-3 py-2 border rounded ${formData.currentlyWorking ? 'bg-gray-100' : ''}`}
-            />
-            {errors.endDate && <p className="text-red-500 text-sm">{errors.endDate}</p>}
-            <div className="mt-2 flex items-center">
-              <input
-                type="checkbox"
-                name="currentlyWorking"
-                checked={formData.currentlyWorking}
-                onChange={handleChange}
-                id="currentlyWorking"
-                className="mr-2"
-              />
-              <label htmlFor="currentlyWorking" className="text-sm text-gray-600">
-                I currently work here
-              </label>
-            </div>
-          </div>
-        </div>
+//         <div className="mt-3">
+//           <label className="block text-gray-600 text-sm mb-1">Location</label>
+//           <input
+//             type="text"
+//             name="location"
+//             value={formData.location}
+//             onChange={handleChange}
+//             className="w-full px-3 py-2 border rounded"
+//             placeholder="e.g. San Francisco, CA"
+//           />
+//         </div>
 
-        <div className="mt-3">
-          <label className="block text-gray-600 text-sm mb-1">Description</label>
-          <textarea
-            name="description"
-            value={formData.description || ''}
-            onChange={handleChange}
-            rows={3}
-            className="w-full px-3 py-2 border rounded"
-          />
-        </div>
+//         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+//           <div>
+//             <label className="block text-gray-600 text-sm mb-1">Start Date*</label>
+//             <input
+//               type="date"
+//               name="startDate"
+//               value={formData.startDate}
+//               onChange={handleChange}
+//               className={`w-full px-3 py-2 border rounded ${errors.startDate ? 'border-red-500' : ''}`}
+//               max={formData.endDate || new Date().toISOString().split('T')[0]}
+//             />
+//             {errors.startDate && <p className="text-red-500 text-sm mt-1">{errors.startDate}</p>}
+//           </div>
+//           <div>
+//             <label className="block text-gray-600 text-sm mb-1">
+//               End Date
+//               {!formData.currentlyWorking && '*'}
+//             </label>
+//             <input
+//               type="date"
+//               name="endDate"
+//               value={formData.endDate || ''}
+//               onChange={handleChange}
+//               disabled={formData.currentlyWorking}
+//               className={`w-full px-3 py-2 border rounded ${formData.currentlyWorking ? 'bg-gray-100' : ''} ${errors.endDate ? 'border-red-500' : ''}`}
+//               min={formData.startDate || undefined}
+//               max={new Date().toISOString().split('T')[0]}
+//             />
+//             {errors.endDate && <p className="text-red-500 text-sm mt-1">{errors.endDate}</p>}
+//             <div className="mt-2 flex items-center">
+//               <input
+//                 type="checkbox"
+//                 name="currentlyWorking"
+//                 checked={formData.currentlyWorking}
+//                 onChange={handleChange}
+//                 id="currentlyWorking"
+//                 className="mr-2"
+//               />
+//               <label htmlFor="currentlyWorking" className="text-sm text-gray-600">
+//                 I currently work here
+//               </label>
+//             </div>
+//           </div>
+//         </div>
 
-        <div className="mt-4 flex justify-end space-x-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 border border-gray-300 rounded"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit" // Make sure this is type="submit"
-            className="px-4 py-2 bg-primary text-white rounded"
-          >
-            Save
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-};
+//         <div className="mt-3">
+//           <label className="block text-gray-600 text-sm mb-1">Description</label>
+//           <textarea
+//             name="description"
+//             value={formData.description}
+//             onChange={handleChange}
+//             rows={3}
+//             className="w-full px-3 py-2 border rounded"
+//             placeholder="Describe your responsibilities and achievements"
+//           />
+//         </div>
 
-// Education Form Component (unchanged)
-const EducationForm = ({ education, onSave, onCancel }) => {
-  const [formData, setFormData] = useState({
-    ...education,
-    startDate: education.startDate || '',
-    endDate: education.endDate || '',
-    currentlyStudying: education.currentlyStudying || false
-  });
-  const [errors, setErrors] = useState({});
+//         <div className="mt-4 flex justify-end space-x-3">
+//           <button
+//             type="button"
+//             onClick={onCancel}
+//             className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+//           >
+//             Cancel
+//           </button>
+//           <button
+//             type="submit"
+//             className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
+//           >
+//             Save Experience
+//           </button>
+//         </div>
+//       </form>
+//     </div>
+//   );
+// };
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : value
-    });
-  };
+// const EducationForm = ({ education, onSave, onCancel }) => {
+//   const [formData, setFormData] = useState({
+//     institution: education.institution || '',
+//     degree: education.degree || '',
+//     fieldOfStudy: education.fieldOfStudy || '',
+//     startDate: education.startDate ? new Date(education.startDate).toISOString().split('T')[0] : '',
+//     endDate: education.endDate && !education.currentlyStudying ? new Date(education.endDate).toISOString().split('T')[0] : '',
+//     currentlyStudying: education.currentlyStudying || false,
+//     description: education.description || ''
+//   });
 
-  const validate = () => {
-    const newErrors = {};
-    if (!formData.institution) newErrors.institution = 'Institution is required';
-    if (!formData.degree) newErrors.degree = 'Degree is required';
-    if (!formData.fieldOfStudy) newErrors.fieldOfStudy = 'Field of study is required';
-    if (!formData.startDate) newErrors.startDate = 'Start date is required';
-    if (!formData.currentlyStudying && !formData.endDate) {
-      newErrors.endDate = 'End date is required';
-    }
-    if (formData.endDate && new Date(formData.endDate) < new Date(formData.startDate)) {
-      newErrors.endDate = 'End date must be after start date';
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+//   const [errors, setErrors] = useState({});
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (validate()) {
-      onSave({
-        ...formData,
-        currentlyStudying: !!formData.currentlyStudying,
-        startDate: formData.startDate || null,
-        endDate: formData.currentlyStudying ? null : (formData.endDate || null)
-      });
-    }
-  };
+//   const handleChange = (e) => {
+//     const { name, value, type, checked } = e.target;
+//     setFormData(prev => ({
+//       ...prev,
+//       [name]: type === 'checkbox' ? checked : value
+//     }));
+//   };
 
-  return (
-    <div className="bg-gray-50 p-4 rounded-lg mb-4">
-      <h3 className="font-bold mb-3">
-        {education.index !== undefined ? 'Edit Education' : 'Add New Education'}
-      </h3>
-      <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-gray-600 text-sm mb-1">Institution*</label>
-            <input
-              type="text"
-              name="institution"
-              value={formData.institution}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded"
-            />
-            {errors.institution && <p className="text-red-500 text-sm">{errors.institution}</p>}
-          </div>
-          <div>
-            <label className="block text-gray-600 text-sm mb-1">Degree*</label>
-            <input
-              type="text"
-              name="degree"
-              value={formData.degree}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded"
-            />
-            {errors.degree && <p className="text-red-500 text-sm">{errors.degree}</p>}
-          </div>
-        </div>
+//   const validate = () => {
+//     const newErrors = {};
+//     if (!formData.institution.trim()) newErrors.institution = 'Institution is required';
+//     if (!formData.degree.trim()) newErrors.degree = 'Degree is required';
+//     if (!formData.fieldOfStudy.trim()) newErrors.fieldOfStudy = 'Field of study is required';
+//     if (!formData.startDate) newErrors.startDate = 'Start date is required';
+    
+//     if (!formData.currentlyStudying) {
+//       if (!formData.endDate) {
+//         newErrors.endDate = 'End date is required';
+//       } else if (new Date(formData.endDate) < new Date(formData.startDate)) {
+//         newErrors.endDate = 'End date must be after start date';
+//       }
+//     }
+    
+//     setErrors(newErrors);
+//     return Object.keys(newErrors).length === 0;
+//   };
 
-        <div className="mt-3">
-          <label className="block text-gray-600 text-sm mb-1">Field of Study*</label>
-          <input
-            type="text"
-            name="fieldOfStudy"
-            value={formData.fieldOfStudy}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded"
-          />
-          {errors.fieldOfStudy && <p className="text-red-500 text-sm">{errors.fieldOfStudy}</p>}
-        </div>
+//   const handleSubmit = (e) => {
+//     e.preventDefault();
+//     if (validate()) {
+//       onSave({
+//         ...formData,
+//         startDate: new Date(formData.startDate),
+//         endDate: formData.currentlyStudying ? null : new Date(formData.endDate),
+//         currentlyStudying: formData.currentlyStudying
+//       });
+//     }
+//   };
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-          <div>
-            <label className="block text-gray-600 text-sm mb-1">Start Date*</label>
-            <input
-              type="date"
-              name="startDate"
-              value={formData.startDate}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded"
-            />
-            {errors.startDate && <p className="text-red-500 text-sm">{errors.startDate}</p>}
-          </div>
-          <div>
-            <label className="block text-gray-600 text-sm mb-1">
-              End Date
-              {!formData.currentlyStudying && '*'}
-            </label>
-            <input
-              type="date"
-              name="endDate"
-              value={formData.endDate || ''}
-              onChange={handleChange}
-              disabled={formData.currentlyStudying}
-              className={`w-full px-3 py-2 border rounded ${formData.currentlyStudying ? 'bg-gray-100' : ''}`}
-            />
-            {errors.endDate && <p className="text-red-500 text-sm">{errors.endDate}</p>}
-            <div className="mt-2 flex items-center">
-              <input
-                type="checkbox"
-                name="currentlyStudying"
-                checked={formData.currentlyStudying}
-                onChange={handleChange}
-                id="currentlyStudying"
-                className="mr-2"
-              />
-              <label htmlFor="currentlyStudying" className="text-sm text-gray-600">
-                I currently study here
-              </label>
-            </div>
-          </div>
-        </div>
+//   return (
+//     <div className="bg-gray-50 p-4 rounded-lg mb-4">
+//       <h3 className="font-bold mb-3">
+//         {education.index !== undefined ? 'Edit Education' : 'Add New Education'}
+//       </h3>
+//       <form onSubmit={handleSubmit}>
+//         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//           <div>
+//             <label className="block text-gray-600 text-sm mb-1">Institution*</label>
+//             <input
+//               type="text"
+//               name="institution"
+//               value={formData.institution}
+//               onChange={handleChange}
+//               className={`w-full px-3 py-2 border rounded ${errors.institution ? 'border-red-500' : ''}`}
+//               placeholder="e.g. Harvard University"
+//             />
+//             {errors.institution && <p className="text-red-500 text-sm mt-1">{errors.institution}</p>}
+//           </div>
+//           <div>
+//             <label className="block text-gray-600 text-sm mb-1">Degree*</label>
+//             <input
+//               type="text"
+//               name="degree"
+//               value={formData.degree}
+//               onChange={handleChange}
+//               className={`w-full px-3 py-2 border rounded ${errors.degree ? 'border-red-500' : ''}`}
+//               placeholder="e.g. Bachelor of Science"
+//             />
+//             {errors.degree && <p className="text-red-500 text-sm mt-1">{errors.degree}</p>}
+//           </div>
+//         </div>
 
-        <div className="mt-4 flex justify-end space-x-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 border border-gray-300 rounded"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit" // Make sure this is type="submit"
-            className="px-4 py-2 bg-primary text-white rounded"
-          >
-            Save
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-};
+//         <div className="mt-3">
+//           <label className="block text-gray-600 text-sm mb-1">Field of Study*</label>
+//           <input
+//             type="text"
+//             name="fieldOfStudy"
+//             value={formData.fieldOfStudy}
+//             onChange={handleChange}
+//             className={`w-full px-3 py-2 border rounded ${errors.fieldOfStudy ? 'border-red-500' : ''}`}
+//             placeholder="e.g. Computer Science"
+//           />
+//           {errors.fieldOfStudy && <p className="text-red-500 text-sm mt-1">{errors.fieldOfStudy}</p>}
+//         </div>
+
+//         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+//           <div>
+//             <label className="block text-gray-600 text-sm mb-1">Start Date*</label>
+//             <input
+//               type="date"
+//               name="startDate"
+//               value={formData.startDate}
+//               onChange={handleChange}
+//               className={`w-full px-3 py-2 border rounded ${errors.startDate ? 'border-red-500' : ''}`}
+//               max={formData.endDate || new Date().toISOString().split('T')[0]}
+//             />
+//             {errors.startDate && <p className="text-red-500 text-sm mt-1">{errors.startDate}</p>}
+//           </div>
+//           <div>
+//             <label className="block text-gray-600 text-sm mb-1">
+//               End Date
+//               {!formData.currentlyStudying && '*'}
+//             </label>
+//             <input
+//               type="date"
+//               name="endDate"
+//               value={formData.endDate || ''}
+//               onChange={handleChange}
+//               disabled={formData.currentlyStudying}
+//               className={`w-full px-3 py-2 border rounded ${formData.currentlyStudying ? 'bg-gray-100' : ''} ${errors.endDate ? 'border-red-500' : ''}`}
+//               min={formData.startDate || undefined}
+//               max={new Date().toISOString().split('T')[0]}
+//             />
+//             {errors.endDate && <p className="text-red-500 text-sm mt-1">{errors.endDate}</p>}
+//             <div className="mt-2 flex items-center">
+//               <input
+//                 type="checkbox"
+//                 name="currentlyStudying"
+//                 checked={formData.currentlyStudying}
+//                 onChange={handleChange}
+//                 id="currentlyStudying"
+//                 className="mr-2"
+//               />
+//               <label htmlFor="currentlyStudying" className="text-sm text-gray-600">
+//                 I currently study here
+//               </label>
+//             </div>
+//           </div>
+//         </div>
+
+//         <div className="mt-3">
+//           <label className="block text-gray-600 text-sm mb-1">Description</label>
+//           <textarea
+//             name="description"
+//             value={formData.description}
+//             onChange={handleChange}
+//             rows={3}
+//             className="w-full px-3 py-2 border rounded"
+//             placeholder="Notable achievements or coursework"
+//           />
+//         </div>
+
+//         <div className="mt-4 flex justify-end space-x-3">
+//           <button
+//             type="button"
+//             onClick={onCancel}
+//             className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+//           >
+//             Cancel
+//           </button>
+//           <button
+//             type="submit"
+//             className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
+//           >
+//             Save Education
+//           </button>
+//         </div>
+//       </form>
+//     </div>
+//   );
+// };
 
 export default CandidateDashboard;

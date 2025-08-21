@@ -43,12 +43,12 @@ const Home = () => {
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2 mb-4">
-                  <span className="bg-blue-100 text-primary px-3 py-1 rounded-full text-sm">{job.type}</span>
-                  <span className="bg-green-100 text-success px-3 py-1 rounded-full text-sm">{job.salary}</span>
+                  <span className="bg-blue-100 text-primary px-3 py-1 rounded-full text-sm">{job.workType}</span>
+                  <span className="bg-green-100 text-success px-3 py-1 rounded-full text-sm">{job?.salaryRange?.min}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-500 text-sm">Posted {job.posted}</span>
-                  <Link to={`/jobs/${job.id}`} className="text-primary font-medium hover:underline">
+                  <Link to={`/jobs/${job._id}`} className="text-primary font-medium hover:underline">
                     View Details
                   </Link>
                 </div>
