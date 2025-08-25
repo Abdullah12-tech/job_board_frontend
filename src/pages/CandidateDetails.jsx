@@ -46,7 +46,7 @@ const CandidateDetails = () => {
           resume: data.data.resume?.url,
           salaryExpectation: data.data.salaryExpectation,
           preferredJobTypes: data.data.preferredJobTypes || [],
-          about: data.data.about || 'No description provided'
+          about: data.data.headline || 'No description provided'
         };
         
         setCandidate(formattedCandidate);
@@ -147,7 +147,7 @@ const CandidateDetails = () => {
                     <h2 className="text-xl text-primary">{candidate.title}</h2>
                     <div className="flex items-center mt-2 text-gray-600">
                       <FiMapPin className="mr-2" />
-                      <span>{candidate.location}</span>
+                      <span>{candidate.location ? `${candidate.location}` : "Nigeria"}</span>
                     </div>
                   </div>
                   
@@ -162,9 +162,11 @@ const CandidateDetails = () => {
                         Download Resume
                       </a>
                     )}
-                    <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-accent transition-colors">
-                      Contact Candidate
-                    </button>
+                    <a href={`mailto:${candidate.email}&subject=Direct Application from JobFuse`}>
+                      <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-accent transition-colors">
+                        Contact Candidate
+                      </button>
+                    </a>
                   </div>
                 </div>
               </div>
@@ -182,7 +184,7 @@ const CandidateDetails = () => {
               </section>
               
               {/* Experience Section */}
-              <section className="mb-8">
+              {/*<section className="mb-8">
                 <h3 className="text-xl font-bold mb-4 border-b pb-2">Experience</h3>
                 {candidate.experience.length > 0 ? (
                   <div className="space-y-6">
@@ -211,10 +213,10 @@ const CandidateDetails = () => {
                 ) : (
                   <p className="text-gray-500">No experience information provided</p>
                 )}
-              </section>
+              </section>*/}
               
               {/* Education Section */}
-              <section className="mb-8">
+              {/*<section className="mb-8">
                 <h3 className="text-xl font-bold mb-4 border-b pb-2">Education</h3>
                 {candidate.education.length > 0 ? (
                   <div className="space-y-6">
@@ -239,7 +241,7 @@ const CandidateDetails = () => {
                 ) : (
                   <p className="text-gray-500">No education information provided</p>
                 )}
-              </section>
+              </section>*/}
             </div>
             
             {/* Right Column */}

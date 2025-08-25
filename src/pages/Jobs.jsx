@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { FiSearch, FiFilter } from 'react-icons/fi';
 import JobCard from '../components/JobCard';
-import FilterSidebar from '../components/FilterSidebar';
+// import FilterSidebar from '../components/FilterSidebar';
 import { jobContext } from '../context/jobContext';
 
 const Jobs = () => {
@@ -28,10 +28,10 @@ const Jobs = () => {
     }));
   };
 
-  const applyFilters = () => {
-    filterJobs(filters.type, filters.location);
-    setIsFilterOpen(false);
-  };
+  // const applyFilters = () => {
+  //   filterJobs(filters.type, filters.location);
+  //   setIsFilterOpen(false);
+  // };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -48,13 +48,6 @@ const Jobs = () => {
             />
             <FiSearch className="absolute left-3 top-3 text-gray-400" />
           </div>
-          <button
-            onClick={() => setIsFilterOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            <FiFilter />
-            <span>Filters</span>
-          </button>
         </div>
       </div>
 
@@ -83,7 +76,7 @@ const Jobs = () => {
         </div>
 
         {/* Filter Sidebar - Mobile */}
-        {isFilterOpen && (
+        {/*{isFilterOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden">
             <div className="absolute right-0 top-0 h-full w-4/5 bg-white shadow-lg overflow-y-auto">
               <FilterSidebar
@@ -96,14 +89,14 @@ const Jobs = () => {
           </div>
         )}
 
-        {/* Filter Sidebar - Desktop */}
+        Filtebr Sidebar - Desktop
         <div className="hidden lg:block w-80">
           <FilterSidebar
             filters={filters}
             onFilterChange={handleFilterChange}
             onApply={applyFilters}
           />
-        </div>
+        </div>*/}
       </div>
     </div>
   );

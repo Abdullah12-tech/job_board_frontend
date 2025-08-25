@@ -331,12 +331,12 @@ const CandidateDashboard = () => {
                     </div>
 
                     <div>
-                      <label className="block text-gray-600 text-sm mb-1">Headline</label>
-                      <input
+                      <label className="block text-gray-600 text-sm mb-1">About</label>
+                      <textarea
                         {...register('headline')}
                         placeholder="e.g. Frontend Developer"
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                      />
+                      ></textarea>
                       <p className="text-red-500 text-sm mt-1">{errors.headline?.message}</p>
 
                       <label className="block text-gray-600 text-sm mt-4 mb-1">Skills*</label>
