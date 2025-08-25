@@ -34,7 +34,7 @@ const CandidateDetails = () => {
           name: data.data.userId.name,
           email: data.data.userId.email,
           title: data.data.professionalTitle || 'Candidate',
-          location: data.data.preferredLocations?.[0] || 'Not specified',
+          location: data.data.preferredLocations?.[0] || 'Remote',
           skills: data.data.skills || [],
           experience: data.data.experience || [],
           education: data.data.education || [],
