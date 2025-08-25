@@ -14,6 +14,7 @@ useEffect(() => {
   const token = localStorage.getItem("accessToken");
   if (token) {
     fetchCurrentUser(token);
+    
     setTokenChanged(true);
   }
 }, [localStorage.getItem("accessToken")]);
@@ -62,7 +63,7 @@ useEffect(() => {
           </nav>
 
           {/* Auth Buttons */}
-          {isAuthenticated && currentUser ? (
+          {isAuthenticated && currentUser? (
             <div className="flex items-center space-x-4">
 
               <Menu as="div" className="relative">
